@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Quản lý nghiên cứu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap">
+<style>
+:root{
+  --bg:#f5f7f4; --surface:#ffffff; --line:#dfe5df; --fg:#1d2a24; --muted:#5d6b64;
+  --accent:#1f6b52; --accent-soft:#e3f0ea;
+  --ok:#2e7d4f; --ok-bg:#e4f3e9; --warn:#a86a00; --warn-bg:#fdf1d8; --bad:#b3362c; --bad-bg:#fbe5e2;
+  --info:#2f5f8f; --info-bg:#e3edf7;
+  --f-display:"Source Serif 4", Georgia, serif;
+  --f-body:"Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121815; --surface:#1a221e; --line:#2c3832; --fg:#e4ece7; --muted:#9aaba2;
+  --accent:#6cc3a0; --accent-soft:#1f3a2f;
+  --ok:#7fd39d; --ok-bg:#1b3325; --warn:#f0bc5e; --warn-bg:#3a2e14; --bad:#f08a80; --bad-bg:#3d1f1c;
+  --info:#8fb8e6; --info-bg:#1c2a3a; color-scheme:dark}}
+*{box-sizing:border-box}
+html{scroll-padding-top:70px}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55;padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:20px 60px}
+header{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+header h1{font-family:var(--f-display);font-size:1.75rem;margin:0;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted)}
+.hbtns{display:flex;gap:8px;flex-wrap:wrap}
+nav{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;gap:6px;flex-wrap:wrap;padding-block:12px;border-bottom:1px solid var(--line);margin-bottom:20px}
+nav button{font:inherit;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:7px 14px;border-radius:999px;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--accent);background:var(--accent);color:var(--bg);padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:600}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.danger{background:transparent;color:var(--bad);border-color:var(--bad)}
+.btn.sm{padding:4px 10px;font-size:.85rem;font-weight:500}
+.btn:disabled{opacity:.55;cursor:default}
+.strip{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.strip .chip{display:flex;gap:8px;align-items:baseline;padding:8px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+.strip .chip b{font-size:1.3rem;font-variant-numeric:tabular-nums}
+h2{font-family:var(--f-display);font-size:1.25rem;margin:26px 0 10px}
+h2:first-child{margin-top:0}
+h3{font-size:1rem;margin:0 0 6px}
+.group-h{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:8px;min-width:0;width:100%}
+.card:hover{border-color:var(--accent)}
+.top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.nm{font-weight:700;font-size:1.02rem;overflow-wrap:anywhere}
+.meta{color:var(--muted);font-size:.85rem}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.pill.ok{color:var(--ok);background:var(--ok-bg)} .pill.warn{color:var(--warn);background:var(--warn-bg)} .pill.bad{color:var(--bad);background:var(--bad-bg)}
+.pill.done,.pill.info{color:var(--info);background:var(--info-bg)} .pill.pause{color:var(--muted);background:var(--line)}
+.tag{display:inline-block;white-space:nowrap;font-size:.75rem;font-weight:600;padding:1px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent)}
+.tag.off{background:var(--line);color:var(--muted)}
+.bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.next{font-size:.88rem}
+.d{font-variant-numeric:tabular-nums;color:var(--muted)}
+.why{font-size:.8rem;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+.panel+.panel{margin-top:16px}
+.two{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;align-items:start}
+.two>*{min-width:0}
+.two>.col>.panel+.panel{margin-top:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+.ms{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.ms li{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.ms li .t{border:1px solid transparent;background:transparent;border-radius:6px;padding:3px 6px;width:100%;min-width:0}
+.ms li .t:hover,.ms li .t:focus{border-color:var(--line);background:var(--bg)}
+.ms li.done .t{text-decoration:line-through;color:var(--muted)}
+.ms li.late .t{color:var(--bad);font-weight:600}
+.ms li span.t{padding:3px 6px}
+.ms input[type=date]{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:2px 6px;font-size:.85rem;font-variant-numeric:tabular-nums;width:auto}
+.x{border:0;background:none;color:var(--muted);cursor:pointer;font-size:1.15rem;padding:0 4px;line-height:1}
+.x:hover{color:var(--bad)}
+.add{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.add input[type=text]{flex:1 1 200px;width:auto}
+.add input[type=date]{width:auto}
+label{display:block;font-size:.85rem;font-weight:600;margin:10px 0 4px}
+label.inline{display:flex;gap:8px;align-items:center;font-weight:500;margin:6px 0}
+input[type=text],input[type=date],input[type=number],input[type=password],input[type=url],select,textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px}
+textarea{min-height:70px;resize:vertical}
+.row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1 1 160px;min-width:0}
+.rep{border-top:1px solid var(--line);padding:12px 0;display:flex;flex-direction:column;gap:4px}
+.rep:first-child{border-top:0}
+.rep .h{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:.85rem;color:var(--muted)}
+.rep .h b{color:var(--fg)}
+.rep p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.k{font-weight:600;font-size:.8rem;color:var(--muted)}
+.fb{background:var(--accent-soft);border-radius:8px;padding:8px 10px;margin-top:4px}
+.flag{color:var(--bad);font-weight:600}
+.back{border:0;background:none;color:var(--accent);cursor:pointer;font-weight:600;padding:0;margin-bottom:12px}
+.empty{color:var(--muted);font-style:italic}
+.note{font-size:.85rem;color:var(--muted);margin:4px 0}
+.tpl{background:var(--bg);border:1px dashed var(--line);border-radius:8px;padding:12px;white-space:pre-wrap;font-size:.88rem;overflow-wrap:anywhere}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 16px;border-radius:8px;font-size:.9rem;z-index:20;max-width:calc(100vw - 32px)}
+.rules{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.rules .panel+.panel{margin-top:0}
+.rules .panel ul{margin:0;padding-left:18px;list-style:"- "}
+.rules .panel li{margin:3px 0}
+.tbl{overflow-x:auto}
+.tbl table{border-collapse:collapse;width:100%;min-width:560px;font-size:.9rem}
+.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+.tbl code{white-space:nowrap}
+.tbl th{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.tbl td select{padding:4px 6px;font-size:.85rem}
+.banner{background:var(--warn-bg);color:var(--fg);border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:.9rem}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.filters button{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--surface);padding:4px 12px;border-radius:999px;cursor:pointer}
+.filters button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);font-weight:600;background:var(--accent-soft)}
+.filters .sp{flex:1}
+.up{list-style:none;margin:0;padding:0}
+.up li{display:grid;grid-template-columns:96px auto 1fr;gap:10px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line)}
+.up li .who{font-weight:600}
+.up li.late .d{color:var(--bad);font-weight:600}
+.up li button{all:unset;cursor:pointer;color:var(--accent);font-weight:600}
+.up li button:focus-visible{outline:2px solid var(--accent)}
+@media (max-width:560px){.up li{grid-template-columns:1fr}}
+.mini{list-style:none;margin:0;padding:0}
+.mini li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);align-items:center}
+.mini li button.lnk{all:unset;cursor:pointer;font-weight:600;overflow-wrap:anywhere}
+.mini li button.lnk:hover{color:var(--accent)}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0 12px}
+.fields .wide{grid-column:1/-1}
+.title-in{font-family:var(--f-display);font-size:1.35rem;font-weight:700;border:1px solid transparent;background:transparent;border-radius:8px;padding:4px 6px;width:100%}
+.title-in:hover,.title-in:focus{border-color:var(--line);background:var(--surface)}
+.checks{display:flex;flex-direction:column;gap:2px;max-height:240px;overflow:auto}
+pre.json{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:.8rem;overflow:auto;max-height:360px;white-space:pre}
+code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:.88em;overflow-wrap:anywhere}
+.keycell{font-family:ui-monospace,Menlo,monospace;font-size:.82rem}
+.login{max-width:440px;margin:40px auto}
+.private{border-left:3px solid var(--warn);padding-left:10px}
+dialog.guide{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--fg);padding:0;width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 48px)}
+dialog.guide::backdrop{background:rgba(10,20,15,.45)}
+.gh{position:sticky;top:0;background:var(--surface);display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.gh h2{margin:0}
+.gb{padding:6px 18px 20px}
+.gb h3{font-size:1rem;margin:18px 0 6px;color:var(--accent)}
+.gb ul,.gb ol{margin:0;padding-left:20px}.gb li{margin:4px 0}
+.gb ul{list-style:"- "} .gb ul ul{list-style:"+ "}
+.gb .tbl table{min-width:480px}
+.tip{background:var(--accent-soft);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:.92rem}
+.gbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.spin{color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Quản lý nghiên cứu</h1>
+      <p id="sub">Dự án của TS.BS. Phạm Duy Đức · Nhóm học viên hướng dẫn</p>
+    </div>
+    <div class="hbtns" id="hbtns" hidden>
+      <button class="btn ghost sm" id="reload">Tải lại</button>
+      <button class="btn ghost sm" id="logout">Đăng xuất</button>
+    </div>
+  </header>
+  <nav role="tablist" id="nav" hidden></nav>
+  <div id="banner" class="banner" hidden></div>
+  <main id="view"><p class="empty">Đang khởi động…</p></main>
+</div>
+
+<dialog class="guide" id="g-zotero" aria-labelledby="gz-t">
+  <div class="gh"><h2 id="gz-t">Thư viện Zotero dùng chung</h2><button class="btn sm" data-close>Đóng</button></div>
+  <div class="gb">
+    <h3>Thầy làm một lần (khoảng 20 phút)</h3>
+    <ol>
+      <li>Đăng nhập zotero.org, vào <b>Groups → Create a New Group</b>. Chọn loại <b>Private Membership</b> (nhóm kín, chỉ thành viên thấy). Tên gợi ý: <i>NC YHCT – TS Đức</i>.</li>
+      <li>Trong <b>Group Settings</b>: Library Reading = <i>Only group members</i>; Library Editing = <i>All group members</i>; File Editing = <i>Group members</i> (hoặc <i>No group file storage</i> nếu không muốn chia sẻ PDF).</li>
+      <li><b>Members Settings → Send More Invitations</b>: nhập email của 7 học viên. Đặt BS Phú hoặc BS Quang làm <b>Admin</b> để hỗ trợ dọn thư viện.</li>
+      <li>Tạo sẵn bộ thư mục (collection) theo cấu trúc bên dưới.</li>
+    </ol>
+    <h3>Học viên làm</h3>
+    <ol>
+      <li>Cài Zotero 7 cho máy tính và tiện ích <b>Zotero Connector</b> cho trình duyệt; tạo tài khoản và chấp nhận lời mời qua email.</li>
+      <li>Trong Zotero: <b>Settings → Sync</b>, đăng nhập tài khoản, bật đồng bộ. Thư viện nhóm hiện ở cột trái, dưới mục <i>Group Libraries</i>.</li>
+      <li>Cài plugin cho Word (Zotero tự cài; kiểm tra tab <i>Zotero</i> trong Word). Chọn kiểu trích dẫn theo quy định của trường (thường là <b>Vancouver</b>).</li>
+    </ol>
+    <h3>Cấu trúc thư mục</h3>
+    <ul>
+      <li><code>00_Inbox</code>: bài mới thêm, chưa phân loại</li>
+      <li><code>01_Phương pháp NC</code>: thiết kế, thống kê, hướng dẫn báo cáo (CONSORT, STROBE, PRISMA)</li>
+      <li><code>02_YHCT nền tảng</code>: bài kinh điển, đồng thuận, hướng dẫn điều trị</li>
+      <li><code>10_Phú</code>, <code>11_Thượng</code>, <code>12_Quang</code>: mỗi đề tài một thư mục
+        <ul><li>chia nhỏ theo chương: Tổng quan, Phương pháp, Bàn luận</li></ul></li>
+      <li><code>20_Năm 1 – ý tưởng</code>: thư mục con cho Vượng, Tài, Xuyến, Tuyết</li>
+      <li><code>90_Journal club</code>: thư mục con theo tháng, ví dụ <code>2026-10</code></li>
+    </ul>
+    <h3>Thẻ (tag) thống nhất</h3>
+    <ul>
+      <li>Tình trạng: <code>cần-đọc</code>, <code>đã-đọc</code>, <code>trích-dẫn-LV</code>. Gán màu trong Zotero (chuột phải vào thẻ → Assign Color) để lọc bằng phím số 1–3.</li>
+      <li>Thiết kế: <code>RCT</code>, <code>SR-MA</code>, <code>quan-sát</code>, <code>in-vitro</code>, <code>động-vật</code></li>
+      <li>Người thêm: viết tắt tên, ví dụ <code>@Phú</code></li>
+    </ul>
+    <h3>Quy tắc dùng chung</h3>
+    <ul>
+      <li>Thêm bài bằng Zotero Connector hoặc dán DOI/PMID vào nút <i>Add Item by Identifier</i> (biểu tượng đũa thần). Kiểm tra lại tên tạp chí, năm, DOI.</li>
+      <li>Tìm trong thư viện trước khi thêm để tránh trùng. Mỗi tháng Admin vào <b>Duplicate Items</b> để gộp các bản trùng.</li>
+      <li>Mỗi bài đã đọc có 1 ghi chú con theo mẫu: <i>Câu hỏi NC · Thiết kế, cỡ mẫu · Kết quả chính · Hạn chế · Dùng cho phần nào của luận văn</i>.</li>
+      <li>Không xoá mục của người khác; đưa vào Thùng rác để Admin kiểm tra.</li>
+      <li>Khi viết luận văn, chèn trích dẫn từ <b>thư viện nhóm</b>, không phải thư viện cá nhân. Như vậy thầy mở bản Word của học viên vẫn sửa được trích dẫn và cập nhật danh mục tài liệu.</li>
+    </ul>
+    <h3>Dung lượng PDF</h3>
+    <ul>
+      <li>File PDF trong thư viện nhóm tính vào dung lượng của chủ nhóm (gói miễn phí 300 MB, chừng vài trăm bài báo).</li>
+      <li>Cách tiết kiệm: thư viện nhóm chỉ lưu thông tin bài và ghi chú, PDF để trong thư viện cá nhân của người đọc; hoặc thầy mua thêm dung lượng khi thư viện lớn.</li>
+      <li>Thư mục liên kết (linked files) và WebDAV không dùng được cho thư viện nhóm.</li>
+    </ul>
+    <div class="tip">Gợi ý: kết hợp ResearchRabbit hoặc Litmaps (đều nhập được từ Zotero) để theo dõi bài mới quanh các bài gốc của từng đề tài.</div>
+  </div>
+</dialog>
+
+<dialog class="guide" id="g-pico" aria-labelledby="gp-t">
+  <div class="gh"><h2 id="gp-t">Chốt câu hỏi nghiên cứu: PICO và FINER</h2><button class="btn sm" data-close>Đóng</button></div>
+  <div class="gb">
+    <h3>PICO: viết câu hỏi cho rõ</h3>
+    <div class="tbl"><table>
+      <thead><tr><th>Thành phần</th><th>Trả lời câu hỏi</th><th>Ví dụ</th></tr></thead>
+      <tbody>
+        <tr><td><b>P</b> – Population</td><td>Đối tượng nào? Tiêu chuẩn chọn và loại</td><td>Người bệnh đau thắt lưng mạn tính 40–65 tuổi</td></tr>
+        <tr><td><b>I</b> – Intervention / Exposure</td><td>Can thiệp hoặc yếu tố phơi nhiễm là gì?</td><td>Điện châm kết hợp bài thuốc Độc hoạt tang ký sinh</td></tr>
+        <tr><td><b>C</b> – Comparison</td><td>So với cái gì?</td><td>Chỉ dùng bài thuốc</td></tr>
+        <tr><td><b>O</b> – Outcome</td><td>Đo kết quả gì, bằng thang nào, khi nào?</td><td>Điểm VAS và ODI sau 4 tuần</td></tr>
+      </tbody></table></div>
+    <ul>
+      <li>Nghiên cứu mô tả, cắt ngang: dùng <b>PEO</b> (bỏ C) hoặc <b>PECO</b>.</li>
+      <li>Tổng quan hệ thống: thêm <b>S</b> (thiết kế nghiên cứu được chọn) thành <b>PICOS</b>.</li>
+      <li>Thí nghiệm: P là mô hình (dòng tế bào, chủng động vật), I là chất hoặc liều thử, C là nhóm chứng, O là chỉ số đo.</li>
+      <li>Câu kiểm tra: đọc lại PICO, người khác có tự viết được tiêu chuẩn chọn mẫu và biến số chính không?</li>
+    </ul>
+    <h3>FINER: câu hỏi có đáng làm không</h3>
+    <p class="note">Chấm mỗi tiêu chí 1–5 điểm. Có tiêu chí F hoặc E dưới 3 điểm thì chỉnh lại hoặc bỏ ý tưởng.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Tiêu chí</th><th>Tự hỏi</th></tr></thead>
+      <tbody>
+        <tr><td><b>F</b> – Feasible (khả thi)</td><td>Đủ cỡ mẫu tại nơi làm việc trong 6–9 tháng? Có kỹ thuật, kinh phí, người hỗ trợ?</td></tr>
+        <tr><td><b>I</b> – Interesting (hấp dẫn)</td><td>Bản thân, thầy và đồng nghiệp có muốn biết câu trả lời?</td></tr>
+        <tr><td><b>N</b> – Novel (mới)</td><td>Tổng quan nhanh 20–30 bài: câu hỏi này đã có lời đáp chưa? Nếu có, đề tài bổ sung gì (quần thể mới, kết cục mới, phương pháp tốt hơn)?</td></tr>
+        <tr><td><b>E</b> – Ethical (đạo đức)</td><td>Hội đồng Đạo đức có chấp thuận? Nhóm chứng có bị thiệt?</td></tr>
+        <tr><td><b>R</b> – Relevant (thiết thực)</td><td>Kết quả có thay đổi thực hành lâm sàng hoặc mở hướng nghiên cứu tiếp?</td></tr>
+      </tbody></table></div>
+    <h3>Phiếu 1 trang cho mỗi ý tưởng</h3>
+    <p class="note">Học viên năm 1 nộp 3 phiếu trước mốc “Đề xuất 3 hướng ý tưởng”.</p>
+    <div class="tpl" id="pico-tpl">PHIẾU Ý TƯỞNG NGHIÊN CỨU
+Họ tên:                    Ngày:
+1. Tên đề tài tạm:
+2. Vấn đề thực tế (vì sao quan tâm, 2–3 câu):
+3. PICO
+   P:
+   I:
+   C:
+   O (thang đo, thời điểm):
+4. Câu hỏi nghiên cứu (1 câu):
+5. Thiết kế dự kiến:            Cỡ mẫu sơ bộ:
+6. FINER (1–5): F __  I __  N __  E __  R __
+7. 3 bài báo then chốt (tác giả, năm, tạp chí):
+8. Khó khăn lớn nhất dự kiến:</div>
+    <button class="btn ghost sm" style="margin-top:8px" data-copy="pico-tpl">Chép phiếu</button>
+    <div class="tip">Tài liệu gốc: Hulley SB và cộng sự, <i>Designing Clinical Research</i>, chương 2. Công cụ tổng quan nhanh: Elicit, Consensus, Semantic Scholar.</div>
+  </div>
+</dialog>
+
+<div id="toast" class="toast" hidden role="status"></div>
+
+<script>
+(function(){
+/* ======= CẤU HÌNH: dán URL Web App Apps Script vào đây sau khi triển khai ======= */
+const DEFAULT_URL = "";
+
+const LS={get:k=>{try{return localStorage.getItem(k)}catch(_){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(_){}},del:k=>{try{localStorage.removeItem(k)}catch(_){}}};
+const CFG={url:LS.get("qlnc.url")||DEFAULT_URL,key:LS.get("qlnc.key")||""};
+
+const LOAI=["Đề tài NCKH","Bài báo quốc tế","Bài báo trong nước","Bài tổng quan","Giáo trình/Sách","Hợp tác quốc tế","Khác"];
+const CAP=["Quốc tế","Nhà nước","Bộ/Tỉnh","Cơ sở (Trường)","Khoa","Tạp chí trong nước","Khác"];
+const VAITRO=["Chủ nhiệm","Thư ký","Thành viên chính","Tác giả chính","Tác giả liên hệ","Đồng tác giả","Hướng dẫn","Cố vấn"];
+const TRANGTHAI=["Ý tưởng","Đang thực hiện","Tạm dừng","Hoàn thành","Huỷ"];
+const SP_LOAI=["Bài báo quốc tế","Bài báo trong nước","Báo cáo hội nghị","Đề tài nghiệm thu","Luận văn/Luận án","Phần mềm","Giáo trình/Sách","Sở hữu trí tuệ","Khác"];
+const SP_TT=["Dự kiến","Đang thực hiện","Đã nộp","Đang phản biện","Chấp nhận","Đã đăng/Hoàn thành"];
+const QUYEN={admin:"Quản trị",hocvien:"Học viên",doc:"Chỉ đọc (API)"};
+const LBL={ok:"Đúng tiến độ",warn:"Cần chú ý",bad:"Cần can thiệp",done:"Hoàn thành",pause:"Tạm dừng"};
+const RANK={bad:0,warn:1,ok:2,pause:3,done:4};
+
+let ROLE=null, ME=null, WHO=null;
+let D={DuAn:[],MocDuAn:[],SanPham:[],HocVien:[],MocHocVien:[],BaoCao:[],ApiKeys:[]};
+let tab="ov", openP=null, openS=null, pFilter="Đang thực hiện", oFilter="", lastNewKey=null;
+const view=document.getElementById("view");
+
+/* ---------- tiện ích ---------- */
+const TODAY=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);};
+const days=(a,b)=>Math.round((new Date(b)-new Date(a))/864e5);
+const fmt=d=>d?String(d).slice(0,10).split("-").reverse().join("/"):"—";
+const B=v=>v===true||v==="TRUE"||v==="true";
+let uid=0; const nid=p=>`${p}-${++uid}`;
+const el=(tag,attrs={},...kids)=>{const e=document.createElement(tag);for(const[k,v] of Object.entries(attrs)){if(k==="class")e.className=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else if(k==="value")e.value=v;else if(k==="checked")e.checked=!!v;else if(v!==false&&v!=null)e.setAttribute(k,v===true?"":v);}for(const c of kids.flat()){if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(String(c)));}return e;};
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,2600);}
+async function copy(text){try{await navigator.clipboard.writeText(text);toast("Đã chép");}catch(_){prompt("Chép nội dung sau:",text);}}
+
+/* ---------- API ---------- */
+async function apiGet(action,params={}){
+  const u=new URL(CFG.url);u.searchParams.set("action",action);u.searchParams.set("key",CFG.key);
+  for(const[k,v] of Object.entries(params))u.searchParams.set(k,v);
+  const r=await fetch(u.toString());const j=await r.json();
+  if(!j.ok){const e=new Error(j.error);e.code=j.code;throw e;}return j.data;
+}
+async function apiPost(body){
+  const r=await fetch(CFG.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({...body,key:CFG.key})});
+  const j=await r.json();if(!j.ok){const e=new Error(j.error);e.code=j.code;throw e;}return j.data;
+}
+const KEYCOL=t=>t==="ApiKeys"?"key":"id";
+function putLocal(table,row){const k=KEYCOL(table);const i=D[table].findIndex(x=>x[k]===row[k]);if(i>=0)D[table][i]={...D[table][i],...row};else D[table].push(row);}
+async function save(table,row,{rerender=true,quiet=false}={}){
+  if(row.id) putLocal(table,row);
+  if(rerender) render();
+  try{const saved=await apiPost({action:"upsert",table,row});putLocal(table,saved);if(rerender)render();if(!quiet)toast("Đã lưu");return saved;}
+  catch(e){toast("Không lưu được: "+e.message);await loadAll();return null;}
+}
+async function remove(table,id){
+  D[table]=D[table].filter(x=>x.id!==id);
+  if(table==="DuAn")D.MocDuAn=D.MocDuAn.filter(m=>m.duAnId!==id);
+  if(table==="HocVien"){D.MocHocVien=D.MocHocVien.filter(m=>m.hocVienId!==id);D.BaoCao=D.BaoCao.filter(r=>r.hocVienId!==id);}
+  render();
+  try{await apiPost({action:"delete",table,id});toast("Đã xoá");}catch(e){toast("Không xoá được: "+e.message);await loadAll();}
+}
+
+/* ---------- tính trạng thái ---------- */
+const msKey=m=>m.han||(B(m.xong)?"0000":"9999");
+const sortMs=ms=>ms.slice().sort((a,b)=>msKey(a).localeCompare(msKey(b)));
+const pct=ms=>ms.length?Math.round(100*ms.filter(m=>B(m.xong)).length/ms.length):0;
+const pMs=id=>sortMs(D.MocDuAn.filter(m=>m.duAnId===id));
+const sMs=id=>sortMs(D.MocHocVien.filter(m=>m.hocVienId===id));
+const sReps=id=>D.BaoCao.filter(r=>r.hocVienId===id).sort((a,b)=>b.ngay.localeCompare(a.ngay)||(b.taoLuc||"").localeCompare(a.taoLuc||""));
+const hvIds=p=>String(p.hocVien||"").split(",").map(x=>x.trim()).filter(Boolean);
+function sStatus(s,ms=sMs(s.id),reps=sReps(s.id)){
+  const t=TODAY(),why=[];let lvl="ok";
+  const late=ms.filter(m=>!B(m.xong)&&m.han&&m.han<t), nx=ms.find(m=>!B(m.xong)), lr=reps[0];
+  if(late.length){lvl="bad";why.push(`${late.length} mốc quá hạn`);}
+  if(!lr){if(lvl==="ok")lvl="warn";why.push("chưa có báo cáo");}
+  else{const g=days(lr.ngay,t);if(g>28){lvl="bad";why.push(`${g} ngày chưa báo cáo`);}else if(g>14){if(lvl==="ok")lvl="warn";why.push(`${g} ngày chưa báo cáo`);}}
+  if(lr&&B(lr.canGap)&&!lr.phanHoi){if(lvl==="ok")lvl="warn";why.push("đang xin gặp thầy");}
+  if(nx&&nx.han&&nx.han>=t&&days(t,nx.han)<=14){if(lvl==="ok")lvl="warn";why.push(`mốc kế tiếp còn ${days(t,nx.han)} ngày`);}
+  return {lvl,why,nx,lr};
+}
+function pStatus(p,ms=pMs(p.id)){
+  const t=TODAY(),why=[];
+  if(p.trangThai==="Hoàn thành")return{lvl:"done",why,nx:null};
+  if(p.trangThai==="Tạm dừng"||p.trangThai==="Huỷ")return{lvl:"pause",why:[p.trangThai],nx:null};
+  let lvl="ok";const late=ms.filter(m=>!B(m.xong)&&m.han&&m.han<t), nx=ms.find(m=>!B(m.xong));
+  if(late.length){lvl="bad";why.push(`${late.length} mốc quá hạn`);}
+  if(nx&&nx.han&&nx.han>=t&&days(t,nx.han)<=14){if(lvl==="ok")lvl="warn";why.push(`mốc kế tiếp còn ${days(t,nx.han)} ngày`);}
+  if(p.ketThuc&&p.ketThuc<t){lvl="bad";why.push("quá ngày kết thúc dự kiến");}
+  if(!ms.length)why.push("chưa có mốc");
+  return {lvl,why,nx};
+}
+const pill=lvl=>el("span",{class:"pill "+lvl},LBL[lvl]);
+
+/* ---------- ô nhập dùng chung ---------- */
+function field(lab,val,onSave,o={}){
+  const id=nid("f");let inp;
+  if(o.type==="select"){inp=el("select",{id},o.blank!==false?el("option",{value:""},"—"):null,...o.options.map(x=>el("option",{value:x},x)));
+    if(val&&!o.options.includes(val))inp.append(el("option",{value:val},val));inp.value=val||"";}
+  else if(o.type==="textarea")inp=el("textarea",{id,placeholder:o.ph||""},val||"");
+  else inp=el("input",{type:o.type||"text",id,value:val??"",placeholder:o.ph||"",min:o.min});
+  inp.addEventListener("change",()=>{let v=inp.value.trim?inp.value.trim():inp.value;if(o.type==="number")v=v===""?"":Number(v);onSave(v);});
+  return el("div",{class:o.wide?"wide":""},el("label",{for:id},lab),inp,o.note?el("p",{class:"note"},o.note):null);
+}
+function check(lab,val,onSave){const id=nid("c");return el("label",{class:"inline",for:id},el("input",{type:"checkbox",id,checked:B(val),onchange:e=>onSave(e.target.checked)}),lab);}
+
+/* ---------- danh sách mốc (dùng cho dự án và học viên) ---------- */
+function msList(table,fk,pid,editable=true){
+  const t=TODAY(),wrap=el("div");
+  const rows=sortMs(D[table].filter(m=>m[fk]===pid));
+  const ul=el("ul",{class:"ms"});
+  if(!rows.length)ul.append(el("li",{style:"grid-template-columns:1fr"},el("span",{class:"empty"},"Chưa có mốc nào.")));
+  rows.forEach(m=>{
+    const cls=(B(m.xong)?"done":"")+(!B(m.xong)&&m.han&&m.han<t?" late":"");
+    if(!editable){ul.append(el("li",{class:cls,style:"grid-template-columns:auto 1fr auto"},el("span",{"aria-hidden":"true"},B(m.xong)?"✓":"○"),el("span",{class:"t"},m.ten),el("span",{class:"d"},fmt(m.han))));return;}
+    ul.append(el("li",{class:cls},
+      el("input",{type:"checkbox",checked:B(m.xong),"aria-label":"Đã xong: "+m.ten,onchange:e=>save(table,{id:m.id,xong:e.target.checked,ngayXong:e.target.checked?TODAY():""})}),
+      el("input",{type:"text",class:"t",value:m.ten,"aria-label":"Tên mốc",onchange:e=>save(table,{id:m.id,ten:e.target.value.trim()},{rerender:false})}),
+      el("input",{type:"date",value:m.han||"","aria-label":"Hạn",onchange:e=>save(table,{id:m.id,han:e.target.value})}),
+      el("button",{class:"x",title:"Xoá mốc","aria-label":"Xoá mốc "+m.ten,onclick:()=>{if(confirm("Xoá mốc “"+m.ten+"”?"))remove(table,m.id);}},"×")));
+  });
+  wrap.append(ul);
+  if(editable){
+    const nt=el("input",{type:"text",placeholder:"Mốc mới","aria-label":"Tên mốc mới"}),nd=el("input",{type:"date","aria-label":"Hạn mốc mới"});
+    const add=()=>{if(!nt.value.trim())return;const row={[fk]:pid,ten:nt.value.trim(),han:nd.value||"",xong:false,ngayXong:""};nt.value="";nd.value="";
+      const tmp="tmp"+Date.now();D[table].push({...row,id:tmp});render();
+      apiPost({action:"upsert",table,row}).then(s=>{D[table]=D[table].filter(x=>x.id!==tmp);D[table].push(s);render();toast("Đã thêm mốc");}).catch(e=>{toast("Không lưu được: "+e.message);loadAll();});};
+    nt.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();add();}});
+    wrap.append(el("div",{class:"add"},nt,nd,el("button",{class:"btn sm",onclick:add},"Thêm mốc")));
+  }
+  return wrap;
+}
+
+/* ======================= TỔNG QUAN ======================= */
+function upcomingItems(){
+  const t=TODAY(),lim=new Date(Date.now()+30*864e5).toISOString().slice(0,10),out=[];
+  D.DuAn.filter(p=>!["Hoàn thành","Huỷ","Tạm dừng"].includes(p.trangThai)).forEach(p=>pMs(p.id).forEach(m=>{if(!B(m.xong)&&m.han&&m.han<=lim)out.push({src:"Dự án",who:p.ten,moc:m.ten,han:m.han,late:m.han<t,go:()=>{tab="pj";openP=p.id;render();scrollTo(0,0);}});}));
+  D.HocVien.forEach(s=>sMs(s.id).forEach(m=>{if(!B(m.xong)&&m.han&&m.han<=lim)out.push({src:"Học viên",who:s.hoTen,moc:m.ten,han:m.han,late:m.han<t,go:()=>{tab="st";openS=s.id;render();scrollTo(0,0);}});}));
+  return out.sort((a,b)=>a.han.localeCompare(b.han));
+}
+function renderOverview(){
+  view.replaceChildren();
+  const active=D.DuAn.filter(p=>p.trangThai==="Đang thực hiện");
+  const pst=active.map(p=>({p,st:pStatus(p)}));
+  const sst=D.HocVien.map(s=>({s,st:sStatus(s)}));
+  const year=String(new Date().getFullYear());
+  const up=upcomingItems();
+  view.append(el("div",{class:"strip"},
+    el("div",{class:"chip"},el("b",{},active.length),"dự án đang thực hiện"),
+    el("div",{class:"chip"},el("b",{},up.filter(u=>u.late).length),"mốc quá hạn"),
+    el("div",{class:"chip"},el("b",{},up.filter(u=>!u.late).length),"mốc trong 30 ngày"),
+    el("div",{class:"chip"},el("span",{class:"pill bad"},"Học viên cần can thiệp"),el("b",{},sst.filter(x=>x.st.lvl==="bad").length)),
+    el("div",{class:"chip"},el("b",{},D.BaoCao.filter(r=>!r.phanHoi).length),"báo cáo chờ phản hồi"),
+    el("div",{class:"chip"},el("b",{},D.SanPham.filter(o=>o.trangThai==="Đã đăng/Hoàn thành"&&String(o.ngay).startsWith(year)).length),`sản phẩm hoàn thành ${year}`)));
+
+  const upP=el("div",{class:"panel"},el("h2",{},"Quá hạn và 30 ngày tới"));
+  if(!up.length)upP.append(el("p",{class:"empty"},"Không có mốc nào quá hạn hoặc đến hạn trong 30 ngày. Mốc chưa đặt ngày sẽ không hiện ở đây."));
+  else upP.append(el("ul",{class:"up"},up.slice(0,20).map(u=>el("li",{class:u.late?"late":""},el("span",{class:"d"},(u.late?"Trễ · ":"")+fmt(u.han)),el("span",{class:"tag"+(u.src==="Học viên"?" off":"")},u.src),el("span",{},el("button",{onclick:u.go},u.who),": "+u.moc)))));
+
+  const pp=el("div",{class:"panel"},el("h2",{},"Dự án của tôi"));
+  if(!pst.length)pp.append(el("p",{class:"empty"},"Chưa có dự án đang thực hiện."));
+  else pp.append(el("ul",{class:"mini"},pst.sort((a,b)=>RANK[a.st.lvl]-RANK[b.st.lvl]).map(({p,st})=>el("li",{},el("button",{class:"lnk",onclick:()=>{tab="pj";openP=p.id;render();scrollTo(0,0);}},p.ten),pill(st.lvl)))));
+  const sp=el("div",{class:"panel"},el("h2",{},"Học viên cần chú ý"));
+  const need=sst.filter(x=>x.st.lvl!=="ok").sort((a,b)=>RANK[a.st.lvl]-RANK[b.st.lvl]);
+  if(!need.length)sp.append(el("p",{class:"empty"},"Tất cả học viên đang đúng tiến độ."));
+  else sp.append(el("ul",{class:"mini"},need.map(({s,st})=>el("li",{},el("div",{},el("button",{class:"lnk",onclick:()=>{tab="st";openS=s.id;render();scrollTo(0,0);}},s.hoTen),el("div",{class:"why"},st.why.join(" · "))),pill(st.lvl)))));
+  view.append(el("div",{class:"two"},upP,el("div",{class:"col"},pp,sp)));
+}
+
+/* ======================= DỰ ÁN ======================= */
+function renderProjects(){
+  if(openP)return renderProject(D.DuAn.find(p=>p.id===openP));
+  view.replaceChildren();
+  const f=el("div",{class:"filters"});
+  [["","Tất cả"],...TRANGTHAI.map(x=>[x,x])].forEach(([v,l])=>{const n=v?D.DuAn.filter(p=>p.trangThai===v).length:D.DuAn.length;f.append(el("button",{"aria-pressed":String(pFilter===v),onclick:()=>{pFilter=v;render();}},`${l} (${n})`));});
+  f.append(el("span",{class:"sp"}),el("button",{class:"btn sm",onclick:newProject},"+ Thêm dự án"));
+  view.append(f);
+  const list=D.DuAn.filter(p=>!pFilter||p.trangThai===pFilter).sort((a,b)=>(Number(a.thuTu)||999)-(Number(b.thuTu)||999));
+  if(!list.length){view.append(el("p",{class:"empty"},"Không có dự án ở trạng thái này."));return;}
+  const g=el("div",{class:"grid"});
+  list.forEach(p=>{const ms=pMs(p.id),st=pStatus(p,ms),hv=hvIds(p).map(id=>(D.HocVien.find(s=>s.id===id)||{}).hoTen).filter(Boolean);
+    g.append(el("button",{class:"card",onclick:()=>{openP=p.id;render();scrollTo(0,0);}},
+      el("div",{class:"top"},el("div",{class:"nm"},p.ten||"(chưa đặt tên)"),pill(st.lvl)),
+      el("div",{class:"meta"},[p.loai,p.cap,p.vaiTro].filter(Boolean).join(" · ")||"Chưa phân loại"),
+      el("div",{class:"bar","aria-label":`Hoàn thành ${pct(ms)}% mốc`},el("i",{style:`width:${pct(ms)}%`})),
+      el("div",{class:"next"},"Giai đoạn: ",el("b",{},p.giaiDoan||"—")),
+      el("div",{class:"next"},"Mốc kế tiếp: ",st.nx?el("b",{},st.nx.ten):"—",st.nx&&st.nx.han?el("span",{class:"d"}," · hạn "+fmt(st.nx.han)):null),
+      el("div",{class:"why"},[B(p.congKhai)?"Công khai":"Riêng tư",hv.length?"Học viên: "+hv.join(", "):null,...st.why].filter(Boolean).join(" · "))));});
+  view.append(g);
+}
+async function newProject(){
+  const row={ten:"Dự án mới",trangThai:"Đang thực hiện",vaiTro:"Chủ nhiệm",chuNhiem:"TS.BS. Phạm Duy Đức",congKhai:false,thuTu:D.DuAn.length+1};
+  try{const s=await apiPost({action:"upsert",table:"DuAn",row});D.DuAn.push(s);openP=s.id;pFilter="";render();scrollTo(0,0);toast("Đã tạo dự án, điền thông tin bên dưới");}catch(e){toast("Không tạo được: "+e.message);}
+}
+function renderProject(p){
+  view.replaceChildren();
+  if(!p){openP=null;return renderProjects();}
+  const ms=pMs(p.id),st=pStatus(p,ms),S=v=>r=>save("DuAn",{id:p.id,[v]:r},{rerender:false});
+  view.append(el("button",{class:"back",onclick:()=>{openP=null;render();}},"← Danh sách dự án"));
+  view.append(el("div",{class:"top",style:"flex-wrap:wrap;align-items:center"},
+    el("input",{class:"title-in",type:"text",value:p.ten,"aria-label":"Tên dự án",onchange:e=>save("DuAn",{id:p.id,ten:e.target.value.trim()})}),pill(st.lvl)));
+  if(st.why.length)view.append(el("p",{class:"why"},st.why.join(" · ")));
+
+  const info=el("div",{class:"panel"},el("h2",{},"Thông tin"));
+  info.append(el("div",{class:"fields"},
+    field("Loại",p.loai,S("loai"),{type:"select",options:LOAI}),
+    field("Cấp",p.cap,S("cap"),{type:"select",options:CAP}),
+    field("Vai trò của thầy",p.vaiTro,S("vaiTro"),{type:"select",options:VAITRO}),
+    field("Trạng thái",p.trangThai,v=>save("DuAn",{id:p.id,trangThai:v}),{type:"select",options:TRANGTHAI,blank:false}),
+    field("Giai đoạn hiện tại",p.giaiDoan,S("giaiDoan"),{ph:"Ví dụ: Thu thập số liệu"}),
+    field("Mã số",p.ma,S("ma")),
+    field("Bắt đầu",p.batDau,S("batDau"),{type:"date"}),
+    field("Kết thúc dự kiến",p.ketThuc,v=>save("DuAn",{id:p.id,ketThuc:v}),{type:"date"}),
+    field("Chủ nhiệm / tác giả chính",p.chuNhiem,S("chuNhiem")),
+    field("Đơn vị chủ trì / nơi công bố",p.donVi,S("donVi")),
+    field("Kinh phí (đồng)",p.kinhPhi,S("kinhPhi"),{type:"number",min:0,note:"Không chia sẻ qua API."}),
+    field("Thứ tự hiển thị",p.thuTu,S("thuTu"),{type:"number",min:1}),
+    field("Thành viên khác",p.thanhVien,S("thanhVien"),{wide:true,ph:"Họ tên, ngăn bằng dấu phẩy"}),
+    field("Mô tả ngắn / mục tiêu",p.moTa,S("moTa"),{type:"textarea",wide:true}),
+    field("Liên kết (thư mục, bài báo, phần mềm)",p.lienKet,S("lienKet"),{type:"url",wide:true,ph:"https://…"})));
+  info.append(el("div",{class:"private"},field("Ghi chú riêng",p.ghiChuRieng,S("ghiChuRieng"),{type:"textarea",note:"Chỉ thầy thấy; không xuất qua API."})));
+  info.append(check("Công khai cho web khoa (xuất qua API chỉ đọc)",p.congKhai,v=>save("DuAn",{id:p.id,congKhai:v})));
+  info.append(el("div",{style:"margin-top:14px"},el("button",{class:"btn danger sm",onclick:()=>{if(confirm("Xoá dự án “"+p.ten+"” và toàn bộ mốc? Sản phẩm gắn với dự án vẫn được giữ.")){openP=null;remove("DuAn",p.id);}}},"Xoá dự án")));
+
+  const mp=el("div",{class:"panel"},el("h2",{},`Mốc tiến độ · ${pct(ms)}%`),msList("MocDuAn","duAnId",p.id));
+  const hp=el("div",{class:"panel"},el("h2",{},"Học viên tham gia"));
+  const cur=hvIds(p);
+  if(!D.HocVien.length)hp.append(el("p",{class:"empty"},"Chưa có học viên."));
+  hp.append(el("div",{class:"checks"},D.HocVien.map(s=>check(`${s.hoTen} (${s.chuongTrinh||""})`,cur.includes(s.id),v=>{const n=new Set(hvIds(p));v?n.add(s.id):n.delete(s.id);save("DuAn",{id:p.id,hocVien:[...n].join(",")},{rerender:false});}))));
+  hp.append(el("p",{class:"note"},"Dự án sẽ hiện trong trang tiến độ của học viên được chọn."));
+  const op=el("div",{class:"panel"},el("h2",{},"Sản phẩm đầu ra"),outputsMini(o=>o.duAnId===p.id),addOutputForm({duAnId:p.id}));
+  view.append(el("div",{class:"two",style:"margin-top:10px"},info,el("div",{class:"col"},mp,hp,op)));
+}
+
+/* ======================= SẢN PHẨM ======================= */
+function outputsMini(filter,editable=true){
+  const rows=D.SanPham.filter(filter);
+  if(!rows.length)return el("p",{class:"empty"},"Chưa có sản phẩm.");
+  return el("ul",{class:"mini"},rows.map(o=>el("li",{},
+    el("div",{style:"min-width:0"},el("div",{style:"font-weight:600;overflow-wrap:anywhere"},o.lienKet?el("a",{href:o.lienKet,target:"_blank",rel:"noopener"},o.ten):o.ten),el("div",{class:"why"},[o.loai,o.noiCongBo,o.ngay?fmt(o.ngay):""].filter(Boolean).join(" · "))),
+    editable?el("select",{"aria-label":"Trạng thái sản phẩm",style:"width:auto;padding:4px 6px;font-size:.82rem",onchange:e=>save("SanPham",{id:o.id,trangThai:e.target.value},{rerender:false})},SP_TT.map(x=>{const op=el("option",{value:x},x);if(x===o.trangThai)op.selected=true;return op;})):el("span",{class:"pill info"},o.trangThai))));
+}
+function addOutputForm(fixed={}){
+  const d=el("details",{style:"margin-top:10px"},el("summary",{class:"note",style:"cursor:pointer;font-weight:600"},"+ Thêm sản phẩm"));
+  const ids={};const mk=(k,lab,node)=>{ids[k]=node;node.id=nid("o");return el("div",{},el("label",{for:node.id},lab),node);};
+  const sel=(opts,blank)=>el("select",{},blank?el("option",{value:""},blank):null,...opts.map(([v,l])=>el("option",{value:v},l)));
+  const parts=[
+    mk("ten","Tên sản phẩm",el("input",{type:"text",required:true})),
+    el("div",{class:"row"},mk("loai","Loại",sel(SP_LOAI.map(x=>[x,x]))),mk("trangThai","Trạng thái",sel(SP_TT.map(x=>[x,x])))),
+    el("div",{class:"row"},mk("noiCongBo","Nơi công bố / cấp",el("input",{type:"text"})),mk("ngay","Ngày (nộp/đăng)",el("input",{type:"date"}))),
+    mk("lienKet","Liên kết / DOI",el("input",{type:"text"}))];
+  if(!("duAnId" in fixed))parts.push(mk("duAnId","Thuộc dự án",sel(D.DuAn.map(p=>[p.id,p.ten]),"— Không —")));
+  if(!("hocVienId" in fixed))parts.push(mk("hocVienId","Của học viên",sel(D.HocVien.map(s=>[s.id,s.hoTen]),"— Không —")));
+  const pub=el("input",{type:"checkbox",id:nid("o")});
+  parts.push(el("label",{class:"inline",for:pub.id},pub,"Công khai cho web khoa"));
+  const btn=el("button",{class:"btn sm",style:"margin-top:8px"},"Lưu sản phẩm");
+  btn.addEventListener("click",async()=>{
+    const row={...fixed};for(const[k,n] of Object.entries(ids))row[k]=n.value.trim?n.value.trim():n.value;row.congKhai=pub.checked;
+    if(!row.ten){toast("Nhập tên sản phẩm");return;}
+    btn.disabled=true;try{const s=await apiPost({action:"upsert",table:"SanPham",row});D.SanPham.push(s);render();toast("Đã thêm sản phẩm");}catch(e){toast("Không lưu được: "+e.message);btn.disabled=false;}
+  });
+  d.append(...parts,btn);return d;
+}
+function renderOutputs(){
+  view.replaceChildren();
+  const f=el("div",{class:"filters"});
+  [["","Tất cả"],...SP_TT.map(x=>[x,x])].forEach(([v,l])=>f.append(el("button",{"aria-pressed":String(oFilter===v),onclick:()=>{oFilter=v;render();}},l)));
+  view.append(f);
+  const rows=D.SanPham.filter(o=>!oFilter||o.trangThai===oFilter).sort((a,b)=>(b.ngay||"").localeCompare(a.ngay||""));
+  const pN=id=>(D.DuAn.find(p=>p.id===id)||{}).ten||"", sN=id=>(D.HocVien.find(s=>s.id===id)||{}).hoTen||"";
+  const p=el("div",{class:"panel"});
+  if(!rows.length)p.append(el("p",{class:"empty"},"Chưa có sản phẩm nào ở trạng thái này."));
+  else p.append(el("div",{class:"tbl"},el("table",{},
+    el("thead",{},el("tr",{},["Sản phẩm","Loại","Nơi công bố","Ngày","Gắn với","Trạng thái","Công khai",""].map(h=>el("th",{},h)))),
+    el("tbody",{},rows.map(o=>el("tr",{},
+      el("td",{},o.lienKet?el("a",{href:o.lienKet,target:"_blank",rel:"noopener"},o.ten):o.ten),
+      el("td",{},o.loai),el("td",{},o.noiCongBo),el("td",{class:"d"},fmt(o.ngay)),
+      el("td",{},[pN(o.duAnId),sN(o.hocVienId)].filter(Boolean).join(" · ")||"—"),
+      el("td",{},el("select",{"aria-label":"Trạng thái",onchange:e=>save("SanPham",{id:o.id,trangThai:e.target.value},{rerender:false})},SP_TT.map(x=>{const op=el("option",{value:x},x);if(x===o.trangThai)op.selected=true;return op;}))),
+      el("td",{},el("input",{type:"checkbox",checked:B(o.congKhai),"aria-label":"Công khai",onchange:e=>save("SanPham",{id:o.id,congKhai:e.target.checked},{rerender:false})})),
+      el("td",{},el("button",{class:"x","aria-label":"Xoá "+o.ten,onclick:()=>{if(confirm("Xoá sản phẩm “"+o.ten+"”?"))remove("SanPham",o.id);}},"×"))))))));
+  p.append(addOutputForm());
+  view.append(p);
+}
+
+/* ======================= HỌC VIÊN ======================= */
+function renderStudents(){
+  if(openS)return renderStudent(D.HocVien.find(s=>s.id===openS));
+  view.replaceChildren();
+  const st=D.HocVien.map(s=>({s,st:sStatus(s)}));
+  const c={ok:0,warn:0,bad:0};st.forEach(x=>c[x.st.lvl]++);
+  view.append(el("div",{class:"strip"},
+    el("div",{class:"chip"},el("b",{},D.HocVien.length),"học viên"),
+    el("div",{class:"chip"},pill("ok"),el("b",{},c.ok)),el("div",{class:"chip"},pill("warn"),el("b",{},c.warn)),el("div",{class:"chip"},pill("bad"),el("b",{},c.bad)),
+    el("div",{class:"chip"},el("b",{},D.BaoCao.filter(r=>!r.phanHoi).length),"báo cáo chờ phản hồi"),
+    el("button",{class:"btn sm",style:"align-self:center",onclick:newStudent},"+ Thêm học viên")));
+  if(!D.HocVien.length){view.append(el("p",{class:"empty"},"Chưa có học viên nào."));return;}
+  const groups=[...new Set(D.HocVien.slice().sort((a,b)=>(Number(a.thuTu)||999)-(Number(b.thuTu)||999)).map(s=>s.nhom||"Khác"))];
+  groups.forEach(g=>{
+    view.append(el("div",{class:"group-h"},g));
+    const grid=el("div",{class:"grid"});
+    st.filter(x=>(x.s.nhom||"Khác")===g).sort((a,b)=>RANK[a.st.lvl]-RANK[b.st.lvl]).forEach(({s,st})=>{const ms=sMs(s.id);
+      grid.append(el("button",{class:"card",onclick:()=>{openS=s.id;render();scrollTo(0,0);}},
+        el("div",{class:"top"},el("div",{},el("div",{class:"nm"},s.hoTen),el("div",{class:"meta"},`${s.chuongTrinh||""} · ${s.giaiDoan||""}`)),pill(st.lvl)),
+        el("div",{class:"bar","aria-label":`Hoàn thành ${pct(ms)}% mốc`},el("i",{style:`width:${pct(ms)}%`})),
+        el("div",{class:"next"},"Mốc kế tiếp: ",el("b",{},st.nx?st.nx.ten:"Đã xong tất cả mốc"),st.nx&&st.nx.han?el("span",{class:"d"}," · hạn "+fmt(st.nx.han)):null),
+        el("div",{class:"why"},`Báo cáo gần nhất: ${st.lr?fmt(st.lr.ngay):"chưa có"}${st.why.length?" · "+st.why.join(" · "):""}`)));});
+    view.append(grid);
+  });
+}
+async function newStudent(){
+  const row={hoTen:"Học viên mới",chuongTrinh:"",nhom:"",giaiDoan:"",congKhai:true,thuTu:D.HocVien.length+1};
+  try{const s=await apiPost({action:"upsert",table:"HocVien",row});D.HocVien.push(s);openS=s.id;render();scrollTo(0,0);}catch(e){toast("Không tạo được: "+e.message);}
+}
+function idpPanel(s,onSave,canReview){
+  const p=el("div",{class:"panel"},el("h2",{},"Kế hoạch phát triển cá nhân"),el("p",{class:"note"},"Học viên tự điền, thầy xem lại cùng học viên mỗi học kỳ."));
+  [["idpMucTieu","Mục tiêu 6 tháng tới (đo được)"],["idpKyNang","Kỹ năng cần trau dồi (phương pháp, thống kê, viết, tiếng Anh…)"],["idpKeHoach","Kế hoạch học: khoá học, sách, bài báo kinh điển"],["idpHoTro","Cần thầy / nhóm hỗ trợ gì"]]
+    .forEach(([k,l])=>p.append(field(l,s[k],v=>onSave({[k]:v}),{type:"textarea"})));
+  p.append(el("p",{class:"note"},s.idpDuyet?`Thầy duyệt lần gần nhất: ${fmt(s.idpDuyet)}`:"Chưa duyệt lần nào."));
+  if(canReview)p.append(el("button",{class:"btn ghost sm",onclick:()=>save("HocVien",{id:s.id,idpDuyet:TODAY()})},"Đánh dấu đã duyệt hôm nay"));
+  return p;
+}
+function renderStudent(s){
+  view.replaceChildren();
+  if(!s){openS=null;return renderStudents();}
+  const st=sStatus(s),S=k=>v=>save("HocVien",{id:s.id,[k]:v},{rerender:false});
+  view.append(el("button",{class:"back",onclick:()=>{openS=null;render();}},"← Về nhóm hướng dẫn"));
+  view.append(el("div",{class:"top",style:"flex-wrap:wrap;align-items:center"},el("input",{class:"title-in",type:"text",value:s.hoTen,"aria-label":"Họ tên",onchange:e=>save("HocVien",{id:s.id,hoTen:e.target.value.trim()})}),pill(st.lvl)));
+  if(st.why.length)view.append(el("p",{class:"why"},st.why.join(" · ")));
+  const ms=sMs(s.id);
+  const left=el("div",{class:"col"},
+    el("div",{class:"panel"},el("h2",{},`Các mốc tiến độ · ${pct(ms)}%`),msList("MocHocVien","hocVienId",s.id)),
+    el("div",{class:"panel"},el("h2",{},"Thông tin"),el("div",{class:"fields"},
+      field("Chương trình",s.chuongTrinh,S("chuongTrinh"),{ph:"BS CKII năm 2"}),
+      field("Nhóm hiển thị",s.nhom,v=>save("HocVien",{id:s.id,nhom:v}),{ph:"CKII năm 2 · thực hiện nghiên cứu"}),
+      field("Giai đoạn hiện tại",s.giaiDoan,S("giaiDoan")),
+      field("Email",s.email,S("email"),{note:"Không chia sẻ qua API."}),
+      field("Thứ tự",s.thuTu,S("thuTu"),{type:"number",min:1}),
+      field("Tên đề tài / hướng nghiên cứu",s.deTai,S("deTai"),{wide:true})),
+      check("Công khai tiến độ tổng hợp cho web khoa",s.congKhai,v=>save("HocVien",{id:s.id,congKhai:v},{rerender:false})),
+      el("div",{style:"margin-top:12px"},el("button",{class:"btn danger sm",onclick:()=>{if(confirm("Xoá học viên “"+s.hoTen+"” cùng mốc và báo cáo?")){openS=null;remove("HocVien",s.id);}}},"Xoá học viên"))));
+  const rel=D.DuAn.filter(p=>hvIds(p).includes(s.id));
+  const right=el("div",{class:"col"},idpPanel(s,patch=>save("HocVien",{id:s.id,...patch},{rerender:false}),true),
+    el("div",{class:"panel"},el("h2",{},"Dự án liên quan"),rel.length?el("ul",{class:"mini"},rel.map(p=>el("li",{},el("button",{class:"lnk",onclick:()=>{tab="pj";openP=p.id;render();scrollTo(0,0);}},p.ten),pill(pStatus(p).lvl)))):el("p",{class:"empty"},"Chưa gắn với dự án nào của thầy (gắn trong trang dự án).")),
+    el("div",{class:"panel"},el("h2",{},"Sản phẩm"),outputsMini(o=>o.hocVienId===s.id),addOutputForm({hocVienId:s.id})));
+  view.append(el("div",{class:"two",style:"margin-top:10px"},left,right));
+  const rp=el("div",{class:"panel",style:"margin-top:16px"},el("h2",{},"Lịch sử báo cáo"));
+  const mine=sReps(s.id);
+  if(!mine.length)rp.append(el("p",{class:"empty"},"Chưa có báo cáo nào."));
+  mine.forEach(r=>rp.append(repItem(r,false,true)));
+  view.append(rp);
+}
+function repItem(r,showName,canFb){
+  const s=D.HocVien.find(x=>x.id===r.hocVienId);
+  const box=el("div",{class:"rep"},
+    el("div",{class:"h"},showName?el("b",{},s?s.hoTen:"?"):null,el("span",{},fmt(r.ngay)),r.gioNC?el("span",{},`· ${r.gioNC} giờ NC`):null,r.soBai?el("span",{},`· đọc ${r.soBai} bài`):null,B(r.canGap)?el("span",{class:"flag"},"· Xin gặp thầy"):null),
+    el("div",{class:"k"},"Đã làm"),el("p",{},r.daLam||"—"),
+    r.vuongMac?el("div",{class:"k"},"Vướng mắc"):null,r.vuongMac?el("p",{},r.vuongMac):null,
+    el("div",{class:"k"},"2 tuần tới"),el("p",{},r.keHoach||"—"));
+  if(r.phanHoi)box.append(el("div",{class:"fb"},el("div",{class:"k"},`Thầy phản hồi${r.ngayPhanHoi?" · "+fmt(r.ngayPhanHoi):""}`),el("p",{},r.phanHoi)));
+  if(canFb){const id=nid("fb");const ta=el("textarea",{id,placeholder:"Phản hồi / chỉ đạo của thầy"},r.phanHoi||"");
+    box.append(el("details",{},el("summary",{class:"note",style:"cursor:pointer"},r.phanHoi?"Sửa phản hồi":"Viết phản hồi"),el("label",{for:id,class:"note"},"Phản hồi"),ta,
+      el("div",{style:"display:flex;gap:8px;margin-top:6px"},el("button",{class:"btn sm",onclick:()=>save("BaoCao",{id:r.id,phanHoi:ta.value.trim(),ngayPhanHoi:TODAY()})},"Lưu phản hồi"),
+        el("button",{class:"btn danger sm",onclick:()=>{if(confirm("Xoá báo cáo này?"))remove("BaoCao",r.id);}},"Xoá báo cáo"))));}
+  return box;
+}
+
+/* ======================= BÁO CÁO 2 TUẦN ======================= */
+const TPL=`BÁO CÁO TIẾN ĐỘ 2 TUẦN
+Họ tên:
+Kỳ báo cáo: từ __/__ đến __/__
+1. Đã làm được (kết quả cụ thể, số liệu):
+2. Vướng mắc / cần hỗ trợ:
+3. Kế hoạch 2 tuần tới (2–3 việc, có sản phẩm):
+4. Số giờ dành cho nghiên cứu: __ giờ · Số bài báo đã đọc: __
+5. Cần gặp thầy trực tuyến? Có / Không`;
+function reportForm(asStudent){
+  const f=el("form",{class:"panel"},el("h2",{},asStudent?"Gửi báo cáo":"Nhập báo cáo"));
+  f.append(el("p",{class:"note"},asStudent?"Gửi trước 21:00 tối thứ Năm của tuần chẵn.":"Học viên tự gửi bằng khoá riêng, hoặc thầy dán lại từ tin nhắn Zalo theo mẫu."));
+  let sel=null;
+  if(!asStudent){sel=el("select",{id:"r-sid",required:true},el("option",{value:""},"— Chọn học viên —"),...D.HocVien.map(s=>el("option",{value:s.id},s.hoTen)));f.append(el("label",{for:"r-sid"},"Học viên"),sel);}
+  f.append(el("div",{class:"row"},
+    el("div",{},el("label",{for:"r-date"},"Ngày báo cáo"),el("input",{type:"date",id:"r-date",value:TODAY(),required:true})),
+    el("div",{},el("label",{for:"r-hours"},"Giờ NC / 2 tuần"),el("input",{type:"number",id:"r-hours",min:0,step:1})),
+    el("div",{},el("label",{for:"r-papers"},"Số bài đã đọc"),el("input",{type:"number",id:"r-papers",min:0,step:1}))));
+  f.append(el("label",{for:"r-done"},"Đã làm được"),el("textarea",{id:"r-done",required:true,placeholder:"Ví dụ: thu nhận thêm 12 bệnh nhân (tổng 38/80)"}));
+  f.append(el("label",{for:"r-block"},"Vướng mắc / cần hỗ trợ"),el("textarea",{id:"r-block"}));
+  f.append(el("label",{for:"r-next"},"Kế hoạch 2 tuần tới"),el("textarea",{id:"r-next",required:true}));
+  f.append(el("label",{class:"inline",for:"r-meet"},el("input",{type:"checkbox",id:"r-meet"}),"Cần gặp thầy trực tuyến"));
+  const btn=el("button",{class:"btn",type:"submit",style:"margin-top:12px"},asStudent?"Gửi báo cáo":"Lưu báo cáo");f.append(btn);
+  f.addEventListener("submit",async e=>{e.preventDefault();const v=id=>document.getElementById(id).value.trim();
+    const row={ngay:v("r-date"),gioNC:Number(v("r-hours"))||"",soBai:Number(v("r-papers"))||"",daLam:v("r-done"),vuongMac:v("r-block"),keHoach:v("r-next"),canGap:document.getElementById("r-meet").checked};
+    btn.disabled=true;
+    try{
+      if(asStudent){await apiPost({action:"report",row});toast("Đã gửi báo cáo");await loadMe();}
+      else{if(!sel.value){toast("Chọn học viên trước");btn.disabled=false;return;}
+        const s=await apiPost({action:"upsert",table:"BaoCao",row:{...row,hocVienId:sel.value,phanHoi:"",ngayPhanHoi:"",taoLuc:new Date().toISOString()}});D.BaoCao.push(s);toast("Đã lưu báo cáo");render();}
+    }catch(err){toast("Không lưu được: "+err.message);btn.disabled=false;}
+  });
+  return f;
+}
+function tplPanel(){
+  return el("div",{class:"panel"},el("h2",{},"Mẫu gửi qua Zalo"),el("p",{class:"note"},"Dùng khi chưa tiện gửi trên web."),el("div",{class:"tpl"},TPL),
+    el("button",{class:"btn ghost sm",style:"margin-top:8px",onclick:()=>copy(TPL)},"Chép mẫu"));
+}
+function renderReports(){
+  view.replaceChildren();
+  view.append(el("div",{class:"two"},reportForm(false),tplPanel()));
+  const feed=el("div",{class:"panel",style:"margin-top:16px"},el("h2",{},"Báo cáo gần đây"));
+  const recent=D.BaoCao.slice().sort((a,b)=>b.ngay.localeCompare(a.ngay)||(b.taoLuc||"").localeCompare(a.taoLuc||"")).slice(0,25);
+  if(!recent.length)feed.append(el("p",{class:"empty"},"Chưa có báo cáo nào."));
+  recent.forEach(r=>feed.append(repItem(r,true,true)));
+  view.append(feed);
+}
+
+/* ======================= KẾT NỐI API ======================= */
+function renderApi(){
+  view.replaceChildren();
+  const base=CFG.url;
+  const ep=el("div",{class:"panel"},el("h2",{},"Địa chỉ API"),
+    el("p",{},el("code",{},base)," ",el("button",{class:"btn ghost sm",onclick:()=>copy(base)},"Chép")),
+    el("p",{class:"note"},"Web khoa chỉ cần địa chỉ này và một khoá chỉ đọc. Dữ liệu trả về đã lọc: chỉ dự án, sản phẩm và học viên được đánh dấu Công khai; không có kinh phí, ghi chú riêng, email, nội dung báo cáo hay phản hồi."));
+
+  const kp=el("div",{class:"panel"},el("h2",{},"Khoá truy cập"));
+  if(lastNewKey)kp.append(el("div",{class:"banner"},el("b",{},"Khoá mới: "),el("code",{},lastNewKey.key)," ",el("button",{class:"btn sm",onclick:()=>copy(lastNewKey.key)},"Chép khoá"),el("div",{class:"note"},"Gửi khoá cho đơn vị qua kênh riêng (email, Zalo). Ai có khoá đều đọc được dữ liệu công khai; khi cần thu hồi, tắt khoá ở bảng dưới.")));
+  const sN=id=>(D.HocVien.find(s=>s.id===id)||{}).hoTen||"";
+  kp.append(el("div",{class:"tbl"},el("table",{},
+    el("thead",{},el("tr",{},["Tên / đơn vị","Quyền","Khoá","Dùng lần cuối","Hoạt động"].map(h=>el("th",{},h)))),
+    el("tbody",{},D.ApiKeys.map(k=>el("tr",{},
+      el("td",{},k.ten||"—",k.hocVienId?el("div",{class:"why"},sN(k.hocVienId)):null),
+      el("td",{},QUYEN[k.quyen]||k.quyen),
+      el("td",{class:"keycell"},k.key.slice(0,6)+"…"+k.key.slice(-4)," ",el("button",{class:"btn ghost sm",onclick:()=>copy(k.key)},"Chép")),
+      el("td",{class:"d"},fmt(k.lanCuoi)),
+      el("td",{},el("input",{type:"checkbox",checked:B(k.hoatDong),disabled:k.key===CFG.key,"aria-label":"Khoá hoạt động",onchange:async e=>{try{const s=await apiPost({action:"setkey",keyId:k.key,hoatDong:e.target.checked});putLocal("ApiKeys",s);toast(e.target.checked?"Đã bật khoá":"Đã thu hồi khoá");}catch(err){toast(err.message);e.target.checked=!e.target.checked;}}}))))))));
+  const nTen=el("input",{type:"text",id:"k-ten",placeholder:"Ví dụ: Web quản lý Khoa YHCT"});
+  const nQ=el("select",{id:"k-q"},el("option",{value:"doc"},"Chỉ đọc (cho web khoa, đơn vị bên ngoài)"),el("option",{value:"hocvien"},"Học viên (gửi báo cáo, xem tiến độ của mình)"),el("option",{value:"admin"},"Quản trị (toàn quyền)"));
+  const nS=el("select",{id:"k-s"},el("option",{value:""},"— Chọn học viên —"),...D.HocVien.map(s=>el("option",{value:s.id},s.hoTen)));
+  const sWrap=el("div",{hidden:true},el("label",{for:"k-s"},"Học viên"),nS);
+  nQ.addEventListener("change",()=>sWrap.hidden=nQ.value!=="hocvien");
+  const nb=el("button",{class:"btn sm",style:"margin-top:10px"},"Tạo khoá");
+  nb.addEventListener("click",async()=>{if(nQ.value==="hocvien"&&!nS.value){toast("Chọn học viên");return;}
+    nb.disabled=true;try{const s=await apiPost({action:"newkey",ten:nTen.value.trim()||(nQ.value==="hocvien"?sN(nS.value):""),quyen:nQ.value,hocVienId:nQ.value==="hocvien"?nS.value:""});D.ApiKeys.push(s);lastNewKey=s;render();}catch(e){toast(e.message);nb.disabled=false;}});
+  kp.append(el("h3",{style:"margin-top:16px"},"Cấp khoá mới"),el("div",{class:"row"},el("div",{},el("label",{for:"k-ten"},"Tên / đơn vị nhận"),nTen),el("div",{},el("label",{for:"k-q"},"Quyền"),nQ)),sWrap,nb);
+
+  const doc=el("div",{class:"panel"},el("h2",{},"Hướng dẫn cho web khoa"));
+  const tb=[["summary","Số liệu tổng hợp: dự án theo trạng thái/cấp/vai trò, học viên theo đèn tín hiệu, sản phẩm theo loại"],
+    ["projects","Danh sách dự án công khai: thông tin, % hoàn thành, đèn tín hiệu, mốc, học viên tham gia, sản phẩm. Thêm &id=… để lấy 1 dự án"],
+    ["students","Tiến độ tổng hợp học viên: chương trình, giai đoạn, % mốc, đèn tín hiệu, mốc kế tiếp, ngày báo cáo gần nhất"],
+    ["outputs","Sản phẩm đầu ra công khai (bài báo, đề tài nghiệm thu, phần mềm…)"],
+    ["upcoming","Mốc quá hạn và đến hạn trong 30 ngày tới"],
+    ["public","Tất cả các mục trên trong 1 lần gọi"]];
+  doc.append(el("div",{class:"tbl"},el("table",{},el("thead",{},el("tr",{},el("th",{},"action"),el("th",{},"Trả về"))),el("tbody",{},tb.map(([a,d])=>el("tr",{},el("td",{},el("code",{},a)),el("td",{},d)))))));
+  const ex=`// Gọi từ web khoa (JavaScript)
+const API = "${base}";
+const KEY = "rd_..."; // khoá chỉ đọc được cấp
+const res = await fetch(API + "?action=summary&key=" + KEY);
+const j = await res.json();   // { ok, generatedAt, data }
+if (j.ok) console.log(j.data);
+
+// PHP / máy chủ: file_get_contents(API . "?action=projects&key=" . KEY)
+// Trang tĩnh không dùng fetch được: thêm &callback=tenHam (JSONP)`;
+  doc.append(el("pre",{class:"json"},ex),el("button",{class:"btn ghost sm",onclick:()=>copy(ex)},"Chép ví dụ"));
+  doc.append(el("ul",{class:"note",style:"list-style:'- ';padding-left:18px"},
+    el("li",{},"Mọi phản hồi có dạng { ok, generatedAt, data }; lỗi trả { ok:false, error, code } với code: unauthorized, forbidden, bad_request."),
+    el("li",{},"Dữ liệu tổng hợp được lưu đệm 5 phút; mỗi lần thầy sửa dữ liệu thì bộ đệm được xoá."),
+    el("li",{},"Đèn tín hiệu (den): ok = đúng tiến độ, warn = cần chú ý, bad = cần can thiệp, done = hoàn thành, pause = tạm dừng.")));
+  const out=el("pre",{class:"json",hidden:true});
+  const sel=el("select",{"aria-label":"Chọn action để thử",style:"width:auto"},tb.map(([a])=>el("option",{value:a},a)));
+  const tbn=el("button",{class:"btn sm"},"Thử gọi");
+  tbn.addEventListener("click",async()=>{out.hidden=false;out.textContent="Đang gọi…";try{const d=await apiGet(sel.value);out.textContent=JSON.stringify(d,null,2).slice(0,6000);}catch(e){out.textContent="Lỗi: "+e.message;}});
+  doc.append(el("h3",{style:"margin-top:16px"},"Xem trước dữ liệu web khoa sẽ nhận"),el("div",{class:"add"},sel,tbn),out);
+  view.append(el("div",{class:"two"},el("div",{class:"col"},ep,kp),doc));
+}
+
+/* ======================= QUY ƯỚC NHÓM ======================= */
+function renderRules(){
+  view.replaceChildren();
+  const P=(h,items,btns)=>el("div",{class:"panel"},el("h3",{},h),el("ul",{},items.map(i=>el("li",{},i))),btns?el("div",{class:"gbtns"},btns.map(([lab,id])=>el("button",{class:"btn ghost sm",onclick:()=>openGuide(id)},lab))):null);
+  view.append(el("h2",{},"Nhịp sinh hoạt trực tuyến"));
+  view.append(el("div",{class:"tbl"},el("table",{},
+    el("thead",{},el("tr",{},["Hoạt động","Tần suất","Thời lượng","Ai tham gia","Sản phẩm"].map(h=>el("th",{},h)))),
+    el("tbody",{},[["Báo cáo tiến độ","Tối thứ Năm tuần chẵn, trước 21:00","10 phút viết","Từng học viên","Báo cáo trên web (hoặc mẫu Zalo)"],
+       ["Gặp riêng với thầy (Google Meet/Zoom)","2 tuần/lần, xếp lịch xoay vòng","20–30 phút","Thầy + 1 học viên","Việc cần làm ghi vào mốc"],
+       ["Sinh hoạt nhóm","Tối thứ Năm cuối tháng","90 phút","Cả nhóm","Mỗi người báo cáo 7 phút + góp ý chéo"],
+       ["Câu lạc bộ đọc bài báo","1 lần/tháng, ghép vào buổi sinh hoạt nhóm","30 phút","Luân phiên 1 người trình bày","Phiếu đọc phản biện 1 trang"],
+       ["Giờ viết chung (bật camera)","2 buổi/tuần, tự nguyện, học viên tự điều phối","90 phút (3 × 25 phút)","Học viên; thầy không bắt buộc dự","Số chữ / số bài sàng lọc mỗi buổi"],
+       ["Đánh giá giữa kỳ","6 tháng/lần","45 phút","Thầy + học viên","Duyệt lại mốc và kế hoạch cá nhân"]].map(r=>el("tr",{},r.map(c=>el("td",{},c))))))));
+  view.append(el("h2",{},"Quy ước"));
+  view.append(el("div",{class:"rules"},
+    P("Giờ viết chung",["Vào phòng Meet cố định, mỗi người nói 1 câu: hôm nay sẽ làm xong việc gì.","3 lượt 25 phút làm việc im lặng, nghỉ 5 phút giữa các lượt.","Tắt Zalo, Facebook; chỉ mở tài liệu đang viết.","5 phút cuối: mỗi người báo kết quả (số chữ, số bài đã sàng lọc).","Trưởng nhóm luân phiên giữ link và bấm giờ."]),
+    P("Thời hạn phản hồi",["Thầy trả bản thảo trong 14 ngày.","Học viên trả lời tin nhắn trong 48 giờ.","Bản thảo gửi kèm 3 câu hỏi cụ thể muốn thầy xem."]),
+    P("Đèn tín hiệu",["Xanh: báo cáo đều, không mốc nào trễ.","Vàng: quá 14 ngày chưa báo cáo, mốc kế tiếp còn ≤ 14 ngày, hoặc đang xin gặp.","Đỏ: quá 28 ngày chưa báo cáo hoặc có mốc quá hạn → thầy gọi riêng, hỏi nguyên nhân trước khi nhắc tiến độ."]),
+    P("Cặp hỗ trợ",["BS Phú kèm BS Vượng và BS Tài: thiết kế nghiên cứu lâm sàng, Hội đồng Đạo đức.","BS Thượng kèm BS Xuyến: thiết kế thí nghiệm.","BS Quang kèm BS Tuyết: tìm kiếm và tổng quan tài liệu nhanh.","Các cặp trao đổi ít nhất 1 lần/tháng."]),
+    P("Học liên tục",["Mỗi người đọc tối thiểu 4 bài/2 tuần, ghi vào báo cáo.","Thư viện chung trên Zotero (nhóm), gắn thẻ theo đề tài.","Theo dõi bài mới bằng ResearchRabbit/Litmaps.","Năm 1: học PICO/FINER, viết đề cương; năm 2: thống kê, viết bài báo."],[["Hướng dẫn Zotero nhóm","g-zotero"]]),
+    P("Lộ trình năm 1 (giai đoạn tìm ý tưởng)",["3 hướng ý tưởng, mỗi hướng 1 trang.","Tổng quan nhanh 20–30 bài cho hướng được chọn.","Chốt câu hỏi nghiên cứu theo PICO + FINER.","Đề cương nháp → bảo vệ đề cương → nộp Hội đồng Đạo đức."],[["Hướng dẫn PICO / FINER","g-pico"]])));
+}
+function openGuide(id){const d=document.getElementById(id);if(!d)return;try{d.showModal();}catch(_){d.setAttribute("open","");}d.scrollTop=0;}
+document.querySelectorAll("dialog.guide").forEach(d=>{d.addEventListener("click",e=>{if(e.target===d)d.close();});d.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>d.close()));d.querySelectorAll("[data-copy]").forEach(b=>b.addEventListener("click",()=>copy(document.getElementById(b.dataset.copy).textContent)));});
+
+/* ======================= TRANG HỌC VIÊN ======================= */
+function renderMine(){
+  view.replaceChildren();
+  if(!ME){view.append(el("p",{class:"empty"},"Đang tải…"));return;}
+  const s=ME.hocVien,ms=sortMs(ME.moc),reps=ME.baoCao,st=sStatus(s,ms,reps);
+  view.append(el("div",{class:"top",style:"flex-wrap:wrap;align-items:center"},el("div",{},el("h2",{style:"margin:0"},s.hoTen),el("div",{class:"meta"},`${s.chuongTrinh||""} · ${s.giaiDoan||""}`)),pill(st.lvl)));
+  if(st.why.length)view.append(el("p",{class:"why"},st.why.join(" · ")));
+  const t=TODAY();
+  const mp=el("div",{class:"panel"},el("h2",{},`Các mốc tiến độ · ${pct(ms)}%`),
+    ms.length?el("ul",{class:"ms"},ms.map(m=>el("li",{class:(B(m.xong)?"done":"")+(!B(m.xong)&&m.han&&m.han<t?" late":""),style:"grid-template-columns:auto 1fr auto"},el("span",{"aria-hidden":"true"},B(m.xong)?"✓":"○"),el("span",{class:"t"},m.ten),el("span",{class:"d"},fmt(m.han))))):el("p",{class:"empty"},"Thầy chưa đặt mốc."),
+    el("p",{class:"note"},"Mốc do thầy cập nhật sau mỗi buổi gặp riêng."),
+    s.deTai?el("p",{},el("b",{},"Đề tài: "),s.deTai):null);
+  const pj=el("div",{class:"panel"},el("h2",{},"Dự án nhóm có tham gia"),ME.duAn.length?el("ul",{class:"mini"},ME.duAn.map(p=>el("li",{},el("span",{},p.ten),el("span",{class:"tag"},p.trangThai||"")))):el("p",{class:"empty"},"Chưa có."));
+  const idp=idpPanel(s,async patch=>{try{const r=await apiPost({action:"idp",row:patch});ME.hocVien={...ME.hocVien,...r};toast("Đã lưu");}catch(e){toast("Không lưu được: "+e.message);}},false);
+  view.append(el("div",{class:"two"},el("div",{class:"col"},mp,pj),idp));
+  const rp=el("div",{class:"panel",style:"margin-top:16px"},el("h2",{},"Báo cáo đã gửi và phản hồi của thầy"));
+  if(!reps.length)rp.append(el("p",{class:"empty"},"Chưa có báo cáo nào. Gửi ở thẻ “Gửi báo cáo”."));
+  reps.forEach(r=>rp.append(repItem(r,false,false)));
+  view.append(rp);
+}
+function renderStudentReport(){view.replaceChildren();view.append(el("div",{class:"two"},reportForm(true),tplPanel()));}
+
+/* ======================= KHUNG / ĐĂNG NHẬP ======================= */
+const TABS={
+  admin:[["ov","Tổng quan",renderOverview],["pj","Dự án của tôi",renderProjects],["st","Nhóm hướng dẫn",renderStudents],["rp","Báo cáo 2 tuần",renderReports],["op","Sản phẩm",renderOutputs],["api","Kết nối API",renderApi],["ru","Quy ước nhóm",renderRules]],
+  hocvien:[["me","Tiến độ của tôi",renderMine],["sr","Gửi báo cáo",renderStudentReport],["ru","Quy ước nhóm",renderRules]]
+};
+function render(){
+  const tabs=TABS[ROLE];if(!tabs)return;
+  if(!tabs.find(t=>t[0]===tab))tab=tabs[0][0];
+  const nav=document.getElementById("nav");
+  if(nav.childElementCount!==tabs.length){nav.replaceChildren(...tabs.map(([k,l])=>el("button",{role:"tab","data-tab":k,onclick:()=>{tab=k;openP=null;openS=null;render();}},l)));}
+  nav.querySelectorAll("button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.tab===tab)));
+  tabs.find(t=>t[0]===tab)[2]();
+}
+function renderLogin(msg){
+  document.getElementById("nav").hidden=true;document.getElementById("hbtns").hidden=true;
+  view.replaceChildren();
+  const f=el("form",{class:"panel login"},el("h2",{},"Đăng nhập"),el("p",{class:"note"},"Nhập khoá truy cập thầy cấp. Khoá được lưu trên trình duyệt này để lần sau không phải nhập lại."));
+  if(msg)f.append(el("div",{class:"banner"},msg));
+  const u=el("input",{type:"url",id:"l-url",value:CFG.url,placeholder:"https://script.google.com/macros/s/…/exec"});
+  if(!DEFAULT_URL)f.append(el("label",{for:"l-url"},"Địa chỉ API (URL Web App)"),u);
+  const k=el("input",{type:"password",id:"l-key",value:CFG.key,autocomplete:"current-password",required:true});
+  f.append(el("label",{for:"l-key"},"Khoá truy cập"),k,el("button",{class:"btn",type:"submit",style:"margin-top:14px"},"Vào"));
+  f.addEventListener("submit",e=>{e.preventDefault();CFG.url=DEFAULT_URL||u.value.trim();CFG.key=k.value.trim();LS.set("qlnc.url",CFG.url);LS.set("qlnc.key",CFG.key);boot();});
+  view.append(f);
+}
+async function loadAll(){
+  try{const d=await apiGet("all");Object.keys(D).forEach(k=>D[k]=d[k]||[]);render();}
+  catch(e){toast("Không tải được dữ liệu: "+e.message);}
+}
+async function loadMe(){try{ME=await apiGet("me");render();}catch(e){toast("Không tải được: "+e.message);}}
+async function boot(){
+  if(!CFG.url||!CFG.key)return renderLogin();
+  view.replaceChildren(el("p",{class:"spin"},"Đang kết nối…"));
+  try{WHO=await apiGet("whoami");}catch(e){return renderLogin(e.code==="unauthorized"?"Khoá không đúng hoặc đã bị thu hồi.":"Không kết nối được API: "+e.message);}
+  ROLE=WHO.quyen;
+  if(ROLE==="doc")return renderLogin("Đây là khoá chỉ đọc dành cho web khoa, không dùng để đăng nhập trang quản lý.");
+  document.getElementById("nav").hidden=false;document.getElementById("hbtns").hidden=false;
+  document.getElementById("sub").textContent=ROLE==="admin"?"Dự án của TS.BS. Phạm Duy Đức · Nhóm học viên hướng dẫn":"Nhóm nghiên cứu do TS.BS. Phạm Duy Đức hướng dẫn";
+  tab=TABS[ROLE][0][0];
+  view.replaceChildren(el("p",{class:"spin"},"Đang tải dữ liệu…"));
+  if(ROLE==="admin")await loadAll();else await loadMe();
+}
+document.getElementById("reload").addEventListener("click",()=>ROLE==="admin"?loadAll():loadMe());
+document.getElementById("logout").addEventListener("click",()=>{LS.del("qlnc.key");CFG.key="";ROLE=null;ME=null;renderLogin();});
+boot();
+})();
+</script>
+</body>
+</html>
