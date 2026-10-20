@@ -150,6 +150,36 @@ dialog.guide::backdrop{background:rgba(10,20,15,.45)}
 .gbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .spin{color:var(--muted)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* hồ sơ đề tài, sản phẩm, tài liệu */
+.ptabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:10px 0 16px;overflow-x:auto}
+.ptabs button{all:unset;cursor:pointer;padding:8px 14px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.ptabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.steps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-bottom:12px}
+@media (max-width:760px){.steps{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:.8rem}
+.step b{display:block;font-size:.88rem}
+.step .sb{height:5px;background:var(--line);border-radius:3px;margin-top:6px;overflow:hidden}
+.step .sb i{display:block;height:100%;background:var(--accent)}
+.step.cur{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.step.done{background:var(--accent-soft)}
+.alert{padding:9px 14px;border-radius:10px;background:var(--warn-bg);color:var(--warn);font-weight:500;margin-bottom:8px;font-size:.9rem}
+.alert.bad{background:var(--bad-bg);color:var(--bad)}.alert.info{background:var(--info-bg);color:var(--info)}.alert.ok{background:var(--ok-bg);color:var(--ok)}
+.docs{width:100%;border-collapse:collapse;font-size:.9rem}
+.docs td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+.docs .code{font-size:.74rem;color:var(--muted)}
+.docs select{width:auto;padding:3px 6px;font-size:.8rem;border-radius:6px}
+.docs input[type=date]{width:auto;padding:3px 6px;font-size:.82rem}
+.docs tr.late td:nth-child(2){color:var(--bad)}
+.docs .han{font-size:.78rem;color:var(--muted);white-space:nowrap}.docs tr.late .han{color:var(--bad);font-weight:600}
+.lk{color:var(--accent);font-weight:600;text-decoration:none;font-size:.85rem;white-space:nowrap}
+button.lk{all:unset;color:var(--accent);font-weight:600;font-size:.85rem;cursor:pointer;white-space:nowrap}
+details.gd{margin-top:12px}details.gd>summary{cursor:pointer;font-family:var(--f-display);font-weight:700;font-size:1.02rem;padding:4px 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.card{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--surface);display:flex;flex-direction:column;gap:4px;min-width:0}
+.card .k{font-size:.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em}
+.card .n{font-weight:600;overflow-wrap:anywhere}
+.card .m{font-size:.8rem;color:var(--muted)}
+.card select{width:auto;padding:3px 6px;font-size:.8rem}
 </style>
 </head>
 <body>
@@ -283,7 +313,7 @@ const LOAI=["Đề tài NCKH","Bài báo quốc tế","Bài báo trong nước",
 const CAP=["Quốc tế","Nhà nước","Bộ/Tỉnh","Cơ sở (Trường)","Khoa","Tạp chí trong nước","Khác"];
 const VAITRO=["Chủ nhiệm","Thư ký","Thành viên chính","Tác giả chính","Tác giả liên hệ","Đồng tác giả","Hướng dẫn","Cố vấn"];
 const TRANGTHAI=["Ý tưởng","Đang thực hiện","Tạm dừng","Hoàn thành","Huỷ"];
-const SP_LOAI=["Bài báo quốc tế","Bài báo trong nước","Báo cáo hội nghị","Đề tài nghiệm thu","Luận văn/Luận án","Phần mềm","Giáo trình/Sách","Sở hữu trí tuệ","Khác"];
+const SP_LOAI=["Bài báo quốc tế","Bài báo trong nước","Bộ dữ liệu","Phiếu thu thập (CRF)","Ảnh/Video","Nguyên mẫu/Quy trình","Bản thảo","Báo cáo hội nghị","Đề tài nghiệm thu","Luận văn/Luận án","Phần mềm","Giáo trình/Sách","Sở hữu trí tuệ","Khác"];
 const SP_TT=["Dự kiến","Đang thực hiện","Đã nộp","Đang phản biện","Chấp nhận","Đã đăng/Hoàn thành"];
 const CT_GOIY=["BS CKII năm 1","BS CKII năm 2","BSNT","Thạc sĩ","Nghiên cứu sinh","Nhóm SV NCKH"];
 const isGroup=s=>!!(s.thanhVien||/^nhóm/i.test(s.chuongTrinh||""));
@@ -301,7 +331,8 @@ const LBL={ok:"Đúng tiến độ",warn:"Cần chú ý",bad:"Cần can thiệp"
 const RANK={bad:0,warn:1,ok:2,pause:3,done:4};
 
 let ROLE=null, ME=null, WHO=null;
-let D={DuAn:[],MocDuAn:[],SanPham:[],HocVien:[],MocHocVien:[],BaoCao:[],ApiKeys:[]};
+let D={DuAn:[],MocDuAn:[],SanPham:[],HocVien:[],MocHocVien:[],BaoCao:[],ApiKeys:[],HoSo:[]};
+let pTab="info";
 let tab="ov", openP=null, openS=null, pFilter="Đang thực hiện", oFilter="", lastNewKey=null;
 const view=document.getElementById("view");
 
@@ -498,6 +529,141 @@ function renderNewProject(){
     catch(err){toast("Không tạo được: "+err.message);btn.disabled=false;}});
   view.append(form);ten.focus();
 }
+/* ---------- hồ sơ đề tài (QĐ 3580/QĐ-ĐHYDCT) ---------- */
+const HS_TT=["Chưa có","Đang soạn","Đã nộp","Hoàn tất","Không cần"];
+const HS_XONG=["Đã nộp","Hoàn tất","Không cần"];
+const GD=["Đề xuất","Đề cương & đạo đức","Giao đề tài","Thực hiện","Nghiệm thu","Kết thúc"];
+const isoD=x=>new Date(x.getTime()-x.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const addM=(d,n)=>{if(!d)return"";const x=new Date(d+"T00:00:00");x.setMonth(x.getMonth()+n);return isoD(x);};
+const addD=(d,n)=>d?isoD(new Date(new Date(d+"T00:00:00").getTime()+n*864e5)):"";
+function hsHan(r,p,rows){
+  const ng=k=>(rows.find(y=>y.khoa===k)||{}).ngay||"";
+  switch(r.khoa){
+    case"bctd1":case"kt1":return addM(p.batDau,6);
+    case"bctd2":case"kt2":return addM(p.batDau,12);
+    case"gh":case"ddnnt":case"quyen":case"baibao":return addD(p.ketThuc,-30);
+    case"binv":return addD(ng("bbnt"),30);
+    case"qt":return addD(ng("tlhd"),30);
+    default:return"";}
+}
+function jsonObj(v){try{return JSON.parse(v||"{}")||{};}catch(e){return{};}}
+async function taoHoSo(p,mau,btn){
+  if(btn)btn.disabled=true;
+  try{const r=await apiPost({action:"taoHoSo",duAnId:p.id,mau,thuMuc:true});
+    D.HoSo=D.HoSo.filter(x=>x.duAnId!==p.id).concat(r.rows);putLocal("DuAn",r.duAn);render();toast("Đã tạo hồ sơ và thư mục Drive");}
+  catch(e){toast("Không tạo được: "+e.message);if(btn)btn.disabled=false;}
+}
+function hoSoView(p){
+  const wrap=el("div");
+  const rows=D.HoSo.filter(r=>r.duAnId===p.id).sort((a,b)=>Number(a.thuTu)-Number(b.thuTu));
+  const gdUrl=jsonObj(p.thuMucGD);
+  if(!rows.length){
+    const isCS=/Đề tài/.test(p.loai||"")&&/Cơ sở/.test(p.cap||"");
+    const b1=el("button",{class:"btn sm"},"Tạo hồ sơ theo QĐ 3580 (cấp cơ sở)");b1.onclick=()=>taoHoSo(p,"cs",b1);
+    const b2=el("button",{class:"btn ghost sm"},p.thuMuc?"Bắt đầu danh mục trống":"Chỉ tạo thư mục Drive, tự thêm giấy tờ");b2.onclick=()=>taoHoSo(p,"trong",b2);
+    wrap.append(el("div",{class:"panel"},el("h2",{},"Hồ sơ đề tài"),
+      el("p",{},isCS?"Đề tài cấp cơ sở: tạo sẵn 30 giấy tờ theo Quy định kèm QĐ 3580/QĐ-ĐHYDCT, có link biểu mẫu cập nhật 08/2025, và thư mục Google Drive riêng (6 giai đoạn + Sản phẩm & dữ liệu + Tài liệu tham khảo).":"Dự án này không phải đề tài cấp cơ sở. Có thể vẫn dùng danh mục QĐ 3580 làm khung, hoặc tạo thư mục và tự thêm giấy tờ."),
+      el("div",{style:"display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"},b1,b2)));
+    if(!p.thuMuc&&rows.length===0)return wrap;
+  }
+  const t=TODAY();
+  // ngày giao & hạn hợp đồng
+  const dp=el("div",{class:"panel",style:"margin-bottom:12px"},el("div",{class:"row"},
+    field("Ngày QĐ giao đề tài",p.batDau,v=>save("DuAn",{id:p.id,batDau:v,...(!p.ketThuc&&v?{ketThuc:addM(v,12)}:{})}),{type:"date",note:"Mốc tính báo cáo tiến độ 6 tháng"}),
+    field("Hạn hợp đồng",p.ketThuc,v=>save("DuAn",{id:p.id,ketThuc:v}),{type:"date",note:"12–18 tháng từ QĐ giao (Điều 6)"}),
+    el("div",{style:"display:flex;flex-direction:column;gap:6px;justify-content:center"},
+      p.thuMuc?el("a",{class:"btn sm",href:p.thuMuc,target:"_blank",rel:"noopener",style:"text-decoration:none;text-align:center"},"📁 Thư mục Drive của đề tài"):(()=>{const b=el("button",{class:"btn ghost sm"},"Tạo thư mục Drive");b.onclick=()=>taoHoSo(p,"trong",b);return b;})(),
+      el("a",{class:"lk",href:"bieu-mau/00-phu-luc-danh-muc.docx"},"Danh mục 21 biểu mẫu (08/2025)"))));
+  wrap.append(dp);
+  if(!rows.length){wrap.append(addHsRow(p,1,rows));return wrap;}
+  // tiến độ theo giai đoạn
+  const by=g=>rows.filter(r=>Number(r.giaiDoan)===g);
+  let cur=0;for(let g=1;g<=6;g++){const rs=by(g);if(rs.some(r=>!HS_XONG.includes(r.trangThai))){cur=g;break;}}
+  wrap.append(el("div",{class:"steps"},GD.map((n,i)=>{const rs=by(i+1),d=rs.filter(r=>HS_XONG.includes(r.trangThai)).length,pc=rs.length?Math.round(100*d/rs.length):0;
+    return el("div",{class:"step"+(i+1===cur?" cur":(pc===100&&rs.length?" done":""))},el("b",{},(i+1)+". "+n),el("span",{class:"note"},`${d}/${rs.length}`),el("div",{class:"sb"},el("i",{style:`width:${pc}%`})));})));
+  // cảnh báo
+  const al=[];
+  const pend=rows.filter(r=>!HS_XONG.includes(r.trangThai)).map(r=>({r,h:hsHan(r,p,rows)})).filter(x=>x.h).sort((a,b)=>a.h.localeCompare(b.h));
+  pend.filter(x=>x.h<t).forEach(x=>al.push(["bad",`Quá hạn ${days(x.h,t)} ngày: ${x.r.ten} (hạn ${fmt(x.h)})`]));
+  pend.filter(x=>x.h>=t&&days(t,x.h)<=45).forEach(x=>al.push([days(t,x.h)<=14?"bad":"",`Còn ${days(t,x.h)} ngày: ${x.r.ten} — hạn ${fmt(x.h)}`]));
+  const xd=(rows.find(r=>r.khoa==="bbxdc")||{}).ngay;
+  if(xd&&!p.batDau){const h=addM(xd,6);al.push([h<t?"bad":"",`Điều 28: phải hoàn chỉnh hồ sơ theo góp ý Hội đồng trước ${fmt(h)} (6 tháng từ xét duyệt đề cương), quá hạn sẽ bị ngưng đề tài.`]);}
+  if(p.ketThuc&&p.ketThuc<t&&!HS_XONG.includes((rows.find(r=>r.khoa==="bbnt")||{}).trangThai))al.push(["bad",`Đã quá hạn hợp đồng (${fmt(p.ketThuc)}). Trễ 12 tháng chưa nghiệm thu sẽ bị ngưng (Điều 28).`]);
+  const bb=D.SanPham.filter(o=>o.duAnId===p.id&&B(o.sanPhamDeTai)&&/Bài báo/.test(o.loai||""));
+  al.push(bb.length?["ok",`Sản phẩm bắt buộc (Điều 8): ${bb.map(o=>o.ten+" – "+o.trangThai).join("; ")}. Nhớ: chủ nhiệm là tác giả chính, có “Lời cảm ơn” ghi số QĐ giao đề tài.`]
+    :["info","Sản phẩm bắt buộc (Điều 8): ≥1 bài báo trên tạp chí thuộc danh mục HĐGSNN, chủ nhiệm là tác giả chính, có “Lời cảm ơn” ghi số QĐ giao. Chưa có bài báo nào được đánh dấu “sản phẩm đề tài” ở thẻ Sản phẩm & dữ liệu."]);
+  al.forEach(([c,m])=>wrap.append(el("div",{class:"alert "+c},m)));
+  // bảng theo giai đoạn
+  const pn=el("div",{class:"panel"});
+  for(let g=1;g<=6;g++){
+    const rs=by(g),d=rs.filter(r=>HS_XONG.includes(r.trangThai)).length;
+    const det=el("details",{class:"gd"},el("summary",{},`${g}. ${GD[g-1]} · ${d}/${rs.length}`,gdUrl[g]?el("a",{class:"lk",href:gdUrl[g],target:"_blank",rel:"noopener",style:"margin-left:10px;font-family:var(--f-body)"},"📁 thư mục"):null));
+    if(g===cur||rs.some(r=>{const h=hsHan(r,p,rows);return h&&!HS_XONG.includes(r.trangThai)&&h<=addD(t,45);}))det.open=true;
+    det.append(el("table",{class:"docs"},el("tbody",{},rs.map(r=>hsRow(r,p,rows)))),addHsRow(p,g,rows));
+    pn.append(det);
+  }
+  pn.append(el("p",{class:"note",style:"margin-top:12px"},"Mỗi dòng: chọn trạng thái, ghi ngày nộp/ký, dán link file trong thư mục Drive. Hạn được tính tự động từ ngày QĐ giao và hạn hợp đồng; hạn sắp tới được đưa vào email nhắc việc."));
+  wrap.append(pn);
+  return wrap;
+}
+function hsRow(r,p,rows){
+  const t=TODAY(),h=hsHan(r,p,rows),late=h&&h<t&&!HS_XONG.includes(r.trangThai);
+  const st=el("select",{"aria-label":"Trạng thái",onchange:e=>{const v=e.target.value;save("HoSo",{id:r.id,trangThai:v,...(["Đã nộp","Hoàn tất"].includes(v)&&!r.ngay?{ngay:TODAY()}:{})});}},HS_TT.map(x=>el("option",{value:x},x)));st.value=r.trangThai||"Chưa có";
+  const dt=el("input",{type:"date",value:r.ngay||"","aria-label":"Ngày nộp / ký",onchange:e=>save("HoSo",{id:r.id,ngay:e.target.value})});
+  const setLink=()=>{const v=prompt("Dán link file (Google Drive…) cho: "+r.ten,r.lienKet||"");if(v!==null)save("HoSo",{id:r.id,lienKet:v.trim()});};
+  return el("tr",{class:late?"late":""},
+    el("td",{style:"width:110px"},st),
+    el("td",{},el("div",{},r.ten),el("div",{class:"code"},[r.ma,r.ghiChu].filter(Boolean).join(" · "))),
+    el("td",{style:"width:130px"},dt,h?el("div",{class:"han"},"hạn "+fmt(h)):null),
+    el("td",{style:"width:120px;text-align:right"},
+      r.lienKet?el("a",{class:"lk",href:r.lienKet,target:"_blank",rel:"noopener"},"📄 Mở"):null," ",
+      el("button",{class:"lk",title:"Sửa link file",onclick:setLink},r.lienKet?"✎":"+ link"),
+      r.mau?el("div",{},el("a",{class:"lk",href:r.mau,target:"_blank",rel:"noopener"},"Mẫu ↓")):null,
+      !r.khoa?el("div",{},el("button",{class:"lk",style:"color:var(--bad)",onclick:()=>{if(confirm("Xoá “"+r.ten+"”?"))remove("HoSo",r.id);}},"Xoá")):null));
+}
+function addHsRow(p,g,rows){
+  const inp=el("input",{type:"text",placeholder:"Thêm giấy tờ khác vào giai đoạn này…","aria-label":"Tên giấy tờ"});
+  const b=el("button",{class:"btn ghost sm"},"Thêm");
+  b.onclick=async()=>{const ten=inp.value.trim();if(!ten)return;b.disabled=true;
+    try{const s=await apiPost({action:"upsert",table:"HoSo",row:{duAnId:p.id,khoa:"",giaiDoan:g,ma:"",ten,mau:"",trangThai:"Chưa có",thuTu:rows.length+1}});D.HoSo.push(s);render();}
+    catch(e){toast("Không thêm được: "+e.message);b.disabled=false;}};
+  return el("div",{style:"display:flex;gap:8px;margin-top:6px"},inp,b);
+}
+/* ---------- sản phẩm & dữ liệu phát sinh ---------- */
+function spView(p){
+  const wrap=el("div");
+  const rows=D.SanPham.filter(o=>o.duAnId===p.id);
+  const pn=el("div",{class:"panel"},el("div",{style:"display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"},el("h2",{style:"margin:0"},"Sản phẩm & dữ liệu phát sinh"),
+    p.thuMucSP?el("a",{class:"lk",href:p.thuMucSP,target:"_blank",rel:"noopener"},"📁 Thư mục Sản phẩm & dữ liệu"):null),
+    el("p",{class:"note"},"Bài báo, bộ dữ liệu, phiếu thu thập, ảnh/video, nguyên mẫu, poster… Đánh dấu “Sản phẩm đề tài” cho sản phẩm sẽ nộp khi nghiệm thu. Học viên tham gia dự án được xem (không sửa)."));
+  pn.append(rows.length?el("div",{class:"cards"},rows.map(o=>el("div",{class:"card"},
+    el("div",{class:"k"},o.loai||"Sản phẩm"),
+    el("div",{class:"n"},o.lienKet?el("a",{href:o.lienKet,target:"_blank",rel:"noopener"},o.ten):o.ten),
+    el("div",{class:"m"},[o.noiCongBo,o.ngay?fmt(o.ngay):"",o.ghiChu].filter(Boolean).join(" · ")),
+    el("div",{style:"display:flex;gap:8px;align-items:center;flex-wrap:wrap"},
+      (()=>{const x=el("select",{"aria-label":"Trạng thái",onchange:e=>save("SanPham",{id:o.id,trangThai:e.target.value},{rerender:false})},SP_TT.map(v=>el("option",{value:v},v)));x.value=o.trangThai||SP_TT[0];return x;})(),
+      el("button",{class:"lk",onclick:()=>{const v=prompt("Link (Drive, DOI…):",o.lienKet||"");if(v!==null)save("SanPham",{id:o.id,lienKet:v.trim()});}},o.lienKet?"✎ link":"+ link")),
+    check("Sản phẩm đề tài (nộp nghiệm thu)",o.sanPhamDeTai,v=>save("SanPham",{id:o.id,sanPhamDeTai:v})),
+    el("button",{class:"lk",style:"color:var(--bad);align-self:flex-start",onclick:()=>{if(confirm("Xoá “"+o.ten+"”?"))remove("SanPham",o.id);}},"Xoá")))):el("p",{class:"empty"},"Chưa có sản phẩm."));
+  pn.append(addOutputForm({duAnId:p.id}));
+  wrap.append(pn);return wrap;
+}
+/* ---------- tài liệu tham khảo: chỉ quản lý thư mục lưu trữ ---------- */
+function tlLinks(p){return String(p.thuMucTLTK||"").split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{const i=l.lastIndexOf("|");return i>0?{n:l.slice(0,i).trim(),u:l.slice(i+1).trim()}:{n:"",u:l};});}
+function tlSave(p,list){return save("DuAn",{id:p.id,thuMucTLTK:list.map(x=>x.n?x.n+" | "+x.u:x.u).join("\n")});}
+function tlView(p){
+  const list=tlLinks(p);
+  const pn=el("div",{class:"panel"},el("h2",{},"Tài liệu tham khảo"),
+    el("p",{class:"note"},"Lưu link các thư mục tài liệu: thư mục do học viên/sinh viên tự lập, hoặc thư mục thầy tự lưu. Học viên tham gia dự án thấy các link này (chỉ xem; quyền mở file do chia sẻ trên Drive quyết định)."));
+  pn.append(list.length?el("ul",{class:"mini"},list.map((x,i)=>el("li",{},
+    el("div",{style:"min-width:0"},el("a",{href:x.u,target:"_blank",rel:"noopener",style:"font-weight:600;overflow-wrap:anywhere"},"📁 "+(x.n||(x.u===p.thuMucTLTK||i===0&&/drive\.google/.test(x.u)?"Thư mục Tài liệu tham khảo của đề tài":x.u)))),
+    el("button",{class:"lk",style:"color:var(--bad)",onclick:()=>{if(confirm("Bỏ link này?"))tlSave(p,list.filter((_,j)=>j!==i));}},"Bỏ")))):el("p",{class:"empty"},"Chưa có thư mục nào."));
+  const n=el("input",{type:"text",placeholder:"Tên, ví dụ: TLTK của BS Phú",id:nid("t")}),u=el("input",{type:"url",placeholder:"https://drive.google.com/…",id:nid("t")});
+  const b=el("button",{class:"btn sm",style:"margin-top:8px"},"Thêm thư mục");
+  b.onclick=()=>{if(!/^https?:\/\//.test(u.value.trim())){toast("Dán link bắt đầu bằng https://");return;}tlSave(p,list.concat([{n:n.value.trim(),u:u.value.trim()}]));};
+  pn.append(el("h3",{style:"margin-top:14px"},"Thêm thư mục"),el("div",{class:"row"},el("div",{},el("label",{for:n.id},"Tên"),n),el("div",{},el("label",{for:u.id},"Link thư mục"),u)),b);
+  return pn;
+}
 function renderProject(p){
   view.replaceChildren();
   if(!p){openP=null;return renderProjects();}
@@ -534,8 +700,13 @@ function renderProject(p){
   if(!D.HocVien.length)hp.append(el("p",{class:"empty"},"Chưa có học viên."));
   hp.append(el("div",{class:"checks"},D.HocVien.map(s=>check(hvLabel(s),cur.includes(s.id),v=>{const n=new Set(hvIds(p));v?n.add(s.id):n.delete(s.id);save("DuAn",{id:p.id,hocVien:[...n].join(",")},{rerender:false});}))));
   hp.append(el("p",{class:"note"},"Dự án sẽ hiện trong trang tiến độ của học viên được chọn."));
-  const op=el("div",{class:"panel"},el("h2",{},"Sản phẩm đầu ra"),outputsMini(o=>o.duAnId===p.id),addOutputForm({duAnId:p.id}));
-  view.append(el("div",{class:"two",style:"margin-top:10px"},info,el("div",{class:"col"},mp,hp,op)));
+  const nHs=D.HoSo.filter(r=>r.duAnId===p.id),nSp=D.SanPham.filter(o=>o.duAnId===p.id).length,nTl=tlLinks(p).length;
+  const tabsP=[["info","Thông tin & mốc"],["hs","Hồ sơ đề tài"+(nHs.length?` · ${nHs.filter(r=>HS_XONG.includes(r.trangThai)).length}/${nHs.length}`:"")],["sp",`Sản phẩm & dữ liệu · ${nSp}`],["tl",`Tài liệu tham khảo · ${nTl}`]];
+  view.append(el("div",{class:"ptabs",role:"tablist"},tabsP.map(([k,l])=>el("button",{role:"tab","aria-selected":String(pTab===k),onclick:()=>{pTab=k;render();}},l))));
+  if(pTab==="hs")return view.append(hoSoView(p));
+  if(pTab==="sp")return view.append(spView(p));
+  if(pTab==="tl")return view.append(tlView(p));
+  view.append(el("div",{class:"two",style:"margin-top:10px"},info,el("div",{class:"col"},mp,hp)));
 }
 
 /* ======================= SẢN PHẨM ======================= */
@@ -554,14 +725,17 @@ function addOutputForm(fixed={}){
     mk("ten","Tên sản phẩm",el("input",{type:"text",required:true})),
     el("div",{class:"row"},mk("loai","Loại",sel(SP_LOAI.map(x=>[x,x]))),mk("trangThai","Trạng thái",sel(SP_TT.map(x=>[x,x])))),
     el("div",{class:"row"},mk("noiCongBo","Nơi công bố / cấp",el("input",{type:"text"})),mk("ngay","Ngày (nộp/đăng)",el("input",{type:"date"}))),
-    mk("lienKet","Liên kết / DOI",el("input",{type:"text"}))];
+    mk("lienKet","Liên kết / DOI",el("input",{type:"text"})),
+    mk("ghiChu","Ghi chú (phiên bản, số mẫu, nơi lưu…)",el("input",{type:"text"}))];
   if(!("duAnId" in fixed))parts.push(mk("duAnId","Thuộc dự án",sel(D.DuAn.map(p=>[p.id,p.ten]),"— Không —")));
   if(!("hocVienId" in fixed))parts.push(mk("hocVienId","Của học viên",sel(D.HocVien.map(s=>[s.id,s.hoTen]),"— Không —")));
   const pub=el("input",{type:"checkbox",id:nid("o")});
   parts.push(el("label",{class:"inline",for:pub.id},pub,"Công khai cho web khoa"));
+  const spdt=el("input",{type:"checkbox",id:nid("o")});
+  if("duAnId" in fixed)parts.push(el("label",{class:"inline",for:spdt.id},spdt,"Sản phẩm đề tài (nộp khi nghiệm thu)"));
   const btn=el("button",{class:"btn sm",style:"margin-top:8px"},"Lưu sản phẩm");
   btn.addEventListener("click",async()=>{
-    const row={...fixed};for(const[k,n] of Object.entries(ids))row[k]=n.value.trim?n.value.trim():n.value;row.congKhai=pub.checked;
+    const row={...fixed};for(const[k,n] of Object.entries(ids))row[k]=n.value.trim?n.value.trim():n.value;row.congKhai=pub.checked;if("duAnId" in fixed)row.sanPhamDeTai=spdt.checked;
     if(!row.ten){toast("Nhập tên sản phẩm");return;}
     btn.disabled=true;try{const s=await apiPost({action:"upsert",table:"SanPham",row});D.SanPham.push(s);render();toast("Đã thêm sản phẩm");}catch(e){toast("Không lưu được: "+e.message);btn.disabled=false;}
   });
@@ -850,7 +1024,11 @@ function renderMine(){
     ms.length?el("ul",{class:"ms"},ms.map(m=>el("li",{class:(B(m.xong)?"done":"")+(!B(m.xong)&&m.han&&m.han<t?" late":""),style:"grid-template-columns:auto 1fr auto"},el("span",{"aria-hidden":"true"},B(m.xong)?"✓":"○"),el("span",{class:"t"},m.ten),el("span",{class:"d"},fmt(m.han))))):el("p",{class:"empty"},"Thầy chưa đặt mốc."),
     el("p",{class:"note"},"Mốc do thầy cập nhật sau mỗi buổi gặp riêng."),
     s.deTai?el("p",{},el("b",{},"Đề tài: "),s.deTai):null);
-  const pj=el("div",{class:"panel"},el("h2",{},"Dự án nhóm có tham gia"),ME.duAn.length?el("ul",{class:"mini"},ME.duAn.map(p=>el("li",{},el("span",{},p.ten),el("span",{class:"tag"},p.trangThai||"")))):el("p",{class:"empty"},"Chưa có."));
+  const spDA=ME.sanPhamDuAn||[];
+  const pj=el("div",{class:"panel"},el("h2",{},"Dự án nhóm có tham gia"),ME.duAn.length?el("div",{},ME.duAn.map(p=>el("div",{style:"padding:8px 0;border-bottom:1px solid var(--line)"},
+    el("div",{style:"display:flex;justify-content:space-between;gap:8px"},el("b",{},p.ten),el("span",{class:"tag"},p.trangThai||"")),
+    tlLinks(p).length?el("div",{class:"note"},"Tài liệu tham khảo: ",...tlLinks(p).map((x,i)=>el("a",{href:x.u,target:"_blank",rel:"noopener",style:"margin-right:10px"},"📁 "+(x.n||"Thư mục "+(i+1))))):null,
+    spDA.filter(o=>o.duAnId===p.id).length?el("ul",{class:"mini"},spDA.filter(o=>o.duAnId===p.id).map(o=>el("li",{},el("span",{},o.lienKet?el("a",{href:o.lienKet,target:"_blank",rel:"noopener"},o.ten):o.ten,el("span",{class:"note"}," · "+(o.loai||""))),el("span",{class:"tag"},o.trangThai||"")))):null))):el("p",{class:"empty"},"Chưa có."));
   const idp=idpPanel(s,async patch=>{try{const r=await apiPost({action:"idp",row:patch});ME.hocVien={...ME.hocVien,...r};toast("Đã lưu");}catch(e){toast("Không lưu được: "+e.message);}},false);
   view.append(el("div",{class:"two"},el("div",{class:"col"},mp,pj),idp));
   const rp=el("div",{class:"panel",style:"margin-top:16px"},el("h2",{},"Báo cáo đã gửi và phản hồi của thầy"));
