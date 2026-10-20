@@ -85,7 +85,7 @@ h3{font-size:1rem;margin:0 0 6px}
 .add input[type=date]{width:auto}
 label{display:block;font-size:.85rem;font-weight:600;margin:10px 0 4px}
 label.inline{display:flex;gap:8px;align-items:center;font-weight:500;margin:6px 0}
-input[type=text],input[type=date],input[type=number],input[type=password],input[type=url],select,textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px}
+input[type=text],input[type=date],input[type=number],input[type=password],input[type=url],input[type=email],select,textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px}
 textarea{min-height:70px;resize:vertical}
 .row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1 1 160px;min-width:0}
 .rep{border-top:1px solid var(--line);padding:12px 0;display:flex;flex-direction:column;gap:4px}
@@ -285,6 +285,17 @@ const VAITRO=["Chủ nhiệm","Thư ký","Thành viên chính","Tác giả chín
 const TRANGTHAI=["Ý tưởng","Đang thực hiện","Tạm dừng","Hoàn thành","Huỷ"];
 const SP_LOAI=["Bài báo quốc tế","Bài báo trong nước","Báo cáo hội nghị","Đề tài nghiệm thu","Luận văn/Luận án","Phần mềm","Giáo trình/Sách","Sở hữu trí tuệ","Khác"];
 const SP_TT=["Dự kiến","Đang thực hiện","Đã nộp","Đang phản biện","Chấp nhận","Đã đăng/Hoàn thành"];
+const CT_GOIY=["BS CKII năm 1","BS CKII năm 2","BSNT","Thạc sĩ","Nghiên cứu sinh","Nhóm SV NCKH"];
+const isGroup=s=>!!(s.thanhVien||/^nhóm/i.test(s.chuongTrinh||""));
+const hvLabel=s=>s.hoTen+(s.chuongTrinh?` (${s.chuongTrinh})`:"");
+const hasKey=id=>D.ApiKeys.some(k=>k.quyen==="hocvien"&&k.hocVienId===id&&B(k.hoatDong));
+async function invite(s,btn){
+  s=D.HocVien.find(x=>x.id===s.id)||s;
+  if(!s.email){toast("Điền email trước");return;}
+  if(btn)btn.disabled=true;
+  try{const r=await apiPost({action:"invite",hocVienId:s.id});if(r.moi)D.ApiKeys.push(r.key);toast("Đã gửi email hướng dẫn tới "+r.email);if(btn)render();}
+  catch(e){toast("Không gửi được: "+e.message);if(btn)btn.disabled=false;}
+}
 const QUYEN={admin:"Quản trị",hocvien:"Học viên",doc:"Chỉ đọc (API)"};
 const LBL={ok:"Đúng tiến độ",warn:"Cần chú ý",bad:"Cần can thiệp",done:"Hoàn thành",pause:"Tạm dừng"};
 const RANK={bad:0,warn:1,ok:2,pause:3,done:4};
@@ -439,6 +450,7 @@ function renderOverview(){
 
 /* ======================= DỰ ÁN ======================= */
 function renderProjects(){
+  if(openP==="__new")return renderNewProject();
   if(openP)return renderProject(D.DuAn.find(p=>p.id===openP));
   view.replaceChildren();
   const f=el("div",{class:"filters"});
@@ -458,9 +470,33 @@ function renderProjects(){
       el("div",{class:"why"},[B(p.congKhai)?"Công khai":"Riêng tư",hv.length?"Học viên: "+hv.join(", "):null,...st.why].filter(Boolean).join(" · "))));});
   view.append(g);
 }
-async function newProject(){
-  const row={ten:"Dự án mới",trangThai:"Đang thực hiện",vaiTro:"Chủ nhiệm",chuNhiem:"TS.BS. Phạm Duy Đức",congKhai:false,thuTu:D.DuAn.length+1};
-  try{const s=await apiPost({action:"upsert",table:"DuAn",row});D.DuAn.push(s);openP=s.id;pFilter="";render();scrollTo(0,0);toast("Đã tạo dự án, điền thông tin bên dưới");}catch(e){toast("Không tạo được: "+e.message);}
+function newProject(){openP="__new";render();scrollTo(0,0);}
+function renderNewProject(){
+  view.replaceChildren(el("button",{class:"back",onclick:()=>{openP=null;render();}},"← Huỷ"));
+  const mkSel=(id,opts,v)=>{const x=el("select",{id},...opts.map(o=>el("option",{value:o},o)));x.value=v;return x;};
+  const lab=(id,t,x)=>el("div",{},el("label",{for:id},t),x);
+  const ten=el("input",{type:"text",id:"np-ten",placeholder:"Ví dụ: Dụng cụ đo CVA"});
+  const loai=mkSel("np-loai",LOAI,"Đề tài NCKH"),cap=mkSel("np-cap",CAP,"Cơ sở (Trường)"),vt=mkSel("np-vt",VAITRO,"Chủ nhiệm");
+  const cn=el("input",{type:"text",id:"np-cn",value:"TS.BS. Phạm Duy Đức"});
+  const kt=el("input",{type:"date",id:"np-kt"});
+  const chosen=new Set();
+  const btn=el("button",{class:"btn",type:"submit",style:"margin-top:12px"},"Tạo dự án");
+  const form=el("form",{class:"panel"},el("h2",{},"Thêm dự án"),
+    lab("np-ten","Tên dự án",ten),
+    el("div",{class:"row"},lab("np-loai","Loại",loai),lab("np-cap","Cấp",cap),lab("np-vt","Vai trò của thầy",vt)),
+    el("div",{class:"row"},lab("np-cn","Chủ nhiệm / tác giả chính",cn),lab("np-kt","Kết thúc dự kiến",kt)),
+    el("h3",{style:"margin-top:14px"},"Học viên / nhóm tham gia"),
+    D.HocVien.length?el("div",{class:"checks"},D.HocVien.map(s=>check(hvLabel(s),false,v=>v?chosen.add(s.id):chosen.delete(s.id)))):el("p",{class:"empty"},"Chưa có học viên."),
+    el("p",{class:"note"},"Người được chọn sẽ thấy dự án này và nhận email báo. Mốc, mô tả, kinh phí… điền sau trong trang dự án."),
+    btn);
+  form.addEventListener("submit",async e=>{e.preventDefault();
+    if(!ten.value.trim()){ten.focus();toast("Nhập tên dự án");return;}
+    btn.disabled=true;
+    const row={ten:ten.value.trim(),loai:loai.value,cap:cap.value,vaiTro:vt.value,chuNhiem:cn.value.trim(),ketThuc:kt.value,
+      hocVien:[...chosen].join(","),trangThai:"Đang thực hiện",congKhai:false,thuTu:D.DuAn.length+1};
+    try{const s=await apiPost({action:"upsert",table:"DuAn",row});D.DuAn.push(s);openP=s.id;pFilter="";render();scrollTo(0,0);toast("Đã tạo dự án");}
+    catch(err){toast("Không tạo được: "+err.message);btn.disabled=false;}});
+  view.append(form);ten.focus();
 }
 function renderProject(p){
   view.replaceChildren();
@@ -496,7 +532,7 @@ function renderProject(p){
   const hp=el("div",{class:"panel"},el("h2",{},"Học viên tham gia"));
   const cur=hvIds(p);
   if(!D.HocVien.length)hp.append(el("p",{class:"empty"},"Chưa có học viên."));
-  hp.append(el("div",{class:"checks"},D.HocVien.map(s=>check(`${s.hoTen} (${s.chuongTrinh||""})`,cur.includes(s.id),v=>{const n=new Set(hvIds(p));v?n.add(s.id):n.delete(s.id);save("DuAn",{id:p.id,hocVien:[...n].join(",")},{rerender:false});}))));
+  hp.append(el("div",{class:"checks"},D.HocVien.map(s=>check(hvLabel(s),cur.includes(s.id),v=>{const n=new Set(hvIds(p));v?n.add(s.id):n.delete(s.id);save("DuAn",{id:p.id,hocVien:[...n].join(",")},{rerender:false});}))));
   hp.append(el("p",{class:"note"},"Dự án sẽ hiện trong trang tiến độ của học viên được chọn."));
   const op=el("div",{class:"panel"},el("h2",{},"Sản phẩm đầu ra"),outputsMini(o=>o.duAnId===p.id),addOutputForm({duAnId:p.id}));
   view.append(el("div",{class:"two",style:"margin-top:10px"},info,el("div",{class:"col"},mp,hp,op)));
@@ -555,6 +591,7 @@ function renderOutputs(){
 
 /* ======================= HỌC VIÊN ======================= */
 function renderStudents(){
+  if(openS==="__new")return renderNewStudent();
   if(openS)return renderStudent(D.HocVien.find(s=>s.id===openS));
   view.replaceChildren();
   const st=D.HocVien.map(s=>({s,st:sStatus(s)}));
@@ -578,9 +615,40 @@ function renderStudents(){
     view.append(grid);
   });
 }
-async function newStudent(){
-  const row={hoTen:"Học viên mới",chuongTrinh:"",nhom:"",giaiDoan:"",congKhai:true,thuTu:D.HocVien.length+1};
-  try{const s=await apiPost({action:"upsert",table:"HocVien",row});D.HocVien.push(s);openS=s.id;render();scrollTo(0,0);}catch(e){toast("Không tạo được: "+e.message);}
+function newStudent(){openS="__new";render();scrollTo(0,0);}
+function renderNewStudent(){
+  view.replaceChildren(el("button",{class:"back",onclick:()=>{openS=null;render();}},"← Huỷ"));
+  let grp=false;
+  const ten=el("input",{type:"text",id:"ns-ten",placeholder:"BS Nguyễn Văn A"}),tenLab=el("label",{for:"ns-ten"},"Họ tên");
+  const ct=el("input",{type:"text",id:"ns-ct",list:"ns-ct-l",placeholder:"BS CKII năm 1"});
+  const dl=el("datalist",{id:"ns-ct-l"},...CT_GOIY.map(x=>el("option",{value:x})));
+  const em=el("input",{type:"email",id:"ns-em",placeholder:"…@student.ctump.edu.vn"}),emLab=el("label",{for:"ns-em"},"Email");
+  const dt=el("input",{type:"text",id:"ns-dt"});
+  const tv=el("textarea",{id:"ns-tv",placeholder:"Mỗi dòng một người: họ tên – lớp – email"});
+  const tvWrap=el("div",{hidden:true},el("label",{for:"ns-tv"},"Thành viên nhóm"),tv);
+  const inv=el("input",{type:"checkbox",id:"ns-inv",checked:true});
+  const setType=g=>{grp=g;tenLab.textContent=g?"Tên nhóm":"Họ tên";ten.placeholder=g?"Ví dụ: Nhóm NC góc chẩm đội":"BS Nguyễn Văn A";
+    emLab.textContent=g?"Email trưởng nhóm":"Email";tvWrap.hidden=!g;
+    if(g&&!ct.value)ct.value="Nhóm SV NCKH";if(!g&&ct.value==="Nhóm SV NCKH")ct.value="";};
+  const radio=(g,t)=>el("label",{class:"inline"},el("input",{type:"radio",name:"ns-type",checked:!g,onchange:()=>setType(g)}),t);
+  const btn=el("button",{class:"btn",type:"submit",style:"margin-top:12px"},"Thêm");
+  const form=el("form",{class:"panel"},el("h2",{},"Thêm học viên / nhóm sinh viên"),
+    el("div",{class:"row",style:"margin-bottom:8px"},radio(false,"Học viên cá nhân"),radio(true,"Nhóm sinh viên")),
+    el("div",{class:"row"},el("div",{},tenLab,ten),el("div",{},el("label",{for:"ns-ct"},"Chương trình"),ct,dl)),
+    el("div",{class:"row"},el("div",{},emLab,em),el("div",{},el("label",{for:"ns-dt"},"Đề tài / hướng nghiên cứu"),dt)),
+    tvWrap,
+    el("label",{class:"inline",for:"ns-inv",style:"margin-top:10px"},inv,"Cấp khoá và gửi email hướng dẫn đăng nhập"),
+    btn);
+  form.addEventListener("submit",async e=>{e.preventDefault();
+    if(!ten.value.trim()){ten.focus();toast(grp?"Nhập tên nhóm":"Nhập họ tên");return;}
+    btn.disabled=true;
+    const row={hoTen:ten.value.trim(),chuongTrinh:ct.value.trim(),nhom:"",giaiDoan:"",email:em.value.trim(),deTai:dt.value.trim(),
+      thanhVien:grp?tv.value.trim():"",congKhai:true,thuTu:D.HocVien.length+1};
+    try{const s=await apiPost({action:"upsert",table:"HocVien",row});D.HocVien.push(s);
+      if(inv.checked&&s.email)await invite(s);
+      openS=s.id;render();scrollTo(0,0);if(!(inv.checked&&s.email))toast("Đã thêm");}
+    catch(err){toast("Không thêm được: "+err.message);btn.disabled=false;}});
+  view.append(form);ten.focus();
 }
 function idpPanel(s,onSave,canReview){
   const p=el("div",{class:"panel"},el("h2",{},"Kế hoạch phát triển cá nhân"),el("p",{class:"note"},"Học viên tự điền, thầy xem lại cùng học viên mỗi học kỳ."));
@@ -606,7 +674,10 @@ function renderStudent(s){
       field("Giai đoạn hiện tại",s.giaiDoan,S("giaiDoan")),
       field("Email",s.email,S("email"),{note:"Không chia sẻ qua API."}),
       field("Thứ tự",s.thuTu,S("thuTu"),{type:"number",min:1}),
-      field("Tên đề tài / hướng nghiên cứu",s.deTai,S("deTai"),{wide:true})),
+      field("Tên đề tài / hướng nghiên cứu",s.deTai,S("deTai"),{wide:true}),
+      isGroup(s)?field("Thành viên nhóm",s.thanhVien,S("thanhVien"),{type:"textarea",wide:true,ph:"Mỗi dòng một người: họ tên – lớp – email"}):null),
+      el("div",{class:"note",style:"margin:6px 0 10px"},hasKey(s.id)?"Đã có khoá đăng nhập. ":"Chưa có khoá đăng nhập. ",
+        el("button",{class:"btn ghost sm",onclick:e=>invite(s,e.target)},hasKey(s.id)?"Gửi lại email hướng dẫn":"Cấp khoá và gửi email")),
       check("Công khai tiến độ tổng hợp cho web khoa",s.congKhai,v=>save("HocVien",{id:s.id,congKhai:v},{rerender:false})),
       el("div",{style:"margin-top:12px"},el("button",{class:"btn danger sm",onclick:()=>{if(confirm("Xoá học viên “"+s.hoTen+"” cùng mốc và báo cáo?")){openS=null;remove("HocVien",s.id);}}},"Xoá học viên"))));
   const rel=D.DuAn.filter(p=>hvIds(p).includes(s.id));
